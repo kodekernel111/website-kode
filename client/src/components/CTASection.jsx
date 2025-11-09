@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function CTASection() {
   return (
@@ -15,15 +16,43 @@ export default function CTASection() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/contact">
-            <Button size="lg" className="gap-2 rounded-full px-8" data-testid="button-cta-contact">
-              Get Started Today
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              <Button size="lg" className="gap-2 rounded-full px-8 relative group" data-testid="button-cta-contact">
+                <motion.span
+                  initial={{ x: 0 }}
+                  animate={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  className="inline-flex items-center"
+                >
+                  Get Started Today
+                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                </motion.span>
+              </Button>
+            </motion.div>
           </Link>
           <Link href="/services">
-            <Button size="lg" variant="outline" className="gap-2 rounded-full px-8" data-testid="button-cta-services">
-              View Our Services
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="glow-border rounded-full"
+            >
+              <Button size="lg" variant="outline" className="gap-2 rounded-full px-8 relative group" data-testid="button-cta-services">
+                <motion.span
+                  initial={{ x: 0 }}
+                  animate={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  className="inline-flex items-center"
+                >
+                  View Our Services
+                </motion.span>
+              </Button>
+              <div className="glow-inner" />
+            </motion.div>
           </Link>
         </div>
       </div>
