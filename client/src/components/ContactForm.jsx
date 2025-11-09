@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
+import AnimatedSection from "./AnimatedSection";
+import { useToast } from "@/hooks/use-toast";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,61 +23,95 @@ export default function ContactForm() {
     service: "",
     message: "",
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const { toast } = useToast();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    if (loading) return;
+    setLoading(true);
+    try {
+      const response = await fetch("http://localhost:8080/api/sendData", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        toast({ title: "Message sent", description: "We'll get back to you shortly." });
+        setFormData({ name: "", email: "", service: "", message: "" });
+      } else {
+        toast({ title: "Send failed", description: "Failed to send message. Please try again." });
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({ title: "Error", description: "An error occurred while sending your message." });
+    }
+    setLoading(false);
   };
 
   return (
-    <section className="py-20 lg:py-32">
+  <section className="pt-12 lg:pt-16 pb-12">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
+  <AnimatedSection animation="fadeIn" className="text-center mb-8">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-contact-title">
             Get In Touch
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-contact-subtitle">
             Ready to start your project? Contact us today and let's build something amazing together.
           </p>
-        </div>
+        </AnimatedSection>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <Card className="p-8">
+            <AnimatedSection animation="fadeUp" delay={60}>
+              <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
+                <div className="glow-inner" />
               <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input
+                {/* Name - floating label */}
+                <div className="relative">
+                  <input
                     id="name"
                     type="text"
-                    placeholder="Your name"
+                    placeholder=" "
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     required
                     data-testid="input-name"
+                    className="peer w-full p-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-transparent focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_12px_rgba(99,102,241,0.12)] transition-all duration-300"
                   />
+                  <label htmlFor="name" className={`absolute left-4 top-3 text-gray-400 pointer-events-none transition-all duration-200 ${formData.name ? '-translate-y-5 text-xs text-indigo-300' : 'peer-focus:-translate-y-5 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
+                    Name
+                  </label>
                 </div>
 
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
+                {/* Email - floating label */}
+                <div className="relative">
+                  <input
                     id="email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder=" "
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     required
                     data-testid="input-email"
+                    className="peer w-full p-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-transparent focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_12px_rgba(99,102,241,0.12)] transition-all duration-300"
                   />
+                  <label htmlFor="email" className={`absolute left-4 top-3 text-gray-400 pointer-events-none transition-all duration-200 ${formData.email ? '-translate-y-5 text-xs text-indigo-300' : 'peer-focus:-translate-y-5 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
+                    Email
+                  </label>
                 </div>
 
+                {/* Service select (keeps UI Select) */}
                 <div>
                   <Label htmlFor="service">Service Interest</Label>
                   <Select
                     value={formData.service}
                     onValueChange={(value) => setFormData({ ...formData, service: value })}
                   >
-                    <SelectTrigger data-testid="select-service">
+                    <SelectTrigger data-testid="select-service" className="border border-gray-700 bg-transparent text-gray-200">
                       <SelectValue placeholder="Select a service" />
                     </SelectTrigger>
                     <SelectContent>
@@ -88,69 +125,92 @@ export default function ContactForm() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea
+                {/* Message - floating label textarea */}
+                <div className="relative">
+                  <textarea
                     id="message"
-                    placeholder="Tell us about your project..."
+                    placeholder=" "
                     rows={6}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     required
                     data-testid="textarea-message"
+                    className="peer w-full p-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-transparent focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_12px_rgba(99,102,241,0.12)] transition-all duration-300 resize-none"
                   />
+                  <label htmlFor="message" className={`absolute left-4 top-3 text-gray-400 pointer-events-none transition-all duration-200 ${formData.message ? '-translate-y-5 text-xs text-indigo-300' : 'peer-focus:-translate-y-5 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
+                    Message
+                  </label>
                 </div>
 
-                <Button type="submit" className="w-full" data-testid="button-submit">
-                  Send Message
-                </Button>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} transition={{ type: 'spring', stiffness: 300 }}>
+                  <Button type="submit" className="w-full flex items-center justify-center gap-3" data-testid="button-submit" disabled={loading}>
+                    {loading ? (
+                      <svg className="w-5 h-5 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                      </svg>
+                    ) : (
+                      'Send Message'
+                    )}
+                  </Button>
+                </motion.div>
               </form>
             </Card>
+            </AnimatedSection>
           </div>
 
           <div className="space-y-6">
-            <Card className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-5 h-5 text-primary" />
+            <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }} className="group">
+              <Card className="glow-border p-6 bg-[#0f0f16] border border-gray-800 shadow-sm hover:shadow-lg transition relative overflow-hidden rounded-xl">
+                <div className="glow-inner" />
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-tr from-indigo-700/20 to-cyan-500/10 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105">
+                    <Mail className="w-5 h-5 text-indigo-300 drop-shadow-lg" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1" data-testid="text-email-label">Email</h3>
+                    <p className="text-sm text-muted-foreground" data-testid="text-email-value">
+                      hello@kodekernel.com
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-1" data-testid="text-email-label">Email</h3>
-                  <p className="text-sm text-muted-foreground" data-testid="text-email-value">
-                    hello@kodekernel.com
-                  </p>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <Card className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-5 h-5 text-primary" />
+            <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }} className="group">
+              <Card className="glow-border p-6 bg-[#0f0f16] border border-gray-800 shadow-sm hover:shadow-lg transition relative overflow-hidden rounded-xl">
+                <div className="glow-inner" />
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-tr from-indigo-700/20 to-cyan-500/10 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105">
+                    <Phone className="w-5 h-5 text-indigo-300 drop-shadow-lg" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1" data-testid="text-phone-label">Phone</h3>
+                    <p className="text-sm text-muted-foreground" data-testid="text-phone-value">
+                      +1 (555) 123-4567
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-1" data-testid="text-phone-label">Phone</h3>
-                  <p className="text-sm text-muted-foreground" data-testid="text-phone-value">
-                    +1 (555) 123-4567
-                  </p>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
 
-            <Card className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-5 h-5 text-primary" />
+            <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }} className="group">
+              <Card className="glow-border p-6 bg-[#0f0f16] border border-gray-800 shadow-sm hover:shadow-lg transition relative overflow-hidden rounded-xl">
+                <div className="glow-inner" />
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-tr from-indigo-700/20 to-cyan-500/10 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105">
+                    <MapPin className="w-5 h-5 text-indigo-300 drop-shadow-lg" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-1" data-testid="text-address-label">Office</h3>
+                    <p className="text-sm text-muted-foreground" data-testid="text-address-value">
+                      123 Tech Street<br />
+                      San Francisco, CA 94105
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-semibold mb-1" data-testid="text-address-label">Office</h3>
-                  <p className="text-sm text-muted-foreground" data-testid="text-address-value">
-                    123 Tech Street<br />
-                    San Francisco, CA 94105
-                  </p>
-                </div>
-              </div>
-            </Card>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </div>
