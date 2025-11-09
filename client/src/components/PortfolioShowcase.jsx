@@ -72,6 +72,7 @@ export default function PortfolioShowcase() {
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-portfolio-subtitle">
             Explore our latest projects showcasing innovative design and cutting-edge technology.
           </p>
+          <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
         </div>
 
         <div className="flex items-center justify-center gap-3 mb-8 flex-wrap">

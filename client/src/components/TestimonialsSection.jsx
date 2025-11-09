@@ -72,6 +72,7 @@ export default function TestimonialsSection() {
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-testimonials-subtitle">
             Don't just take our word for it. Here's what our satisfied clients have to say about working with us.
           </p>
+          <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

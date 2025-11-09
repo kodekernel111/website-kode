@@ -76,6 +76,7 @@ export default function Blog() {
               Technical insights, industry trends, and expert perspectives from our team. 
               Published every weekend.
             </p>
+            <div className="h-px w-48 mx-auto mt-8 mb-12 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
 
             <div className="max-w-2xl mx-auto relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
