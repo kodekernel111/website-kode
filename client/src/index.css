@@ -348,7 +348,6 @@
   }
 }
 
-<<<<<<< Updated upstream
 /* Neon / gradient glow border animation */
 @keyframes gradientGlow {
   0% { background-position: 0% 50%; }
@@ -373,6 +372,9 @@
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
           mask-composite: exclude;
   mask-composite: exclude;
@@ -410,7 +412,8 @@
 @media (max-width: 640px) {
   .glow-border::before { filter: blur(4px) saturate(120%); }
   .glow-border .glow-inner { box-shadow: 0 8px 24px rgba(99,102,241,0.08), inset 0 0 20px rgba(14,165,233,0.04); }
-=======
+  }
+
 /* Brand-wide component styles to unify theme */
 @layer components {
   .btn {
@@ -454,5 +457,4 @@
     border-radius: var(--radius);
     background: linear-gradient(180deg, color-mix(in srgb, var(--brand-grad-from) 14%, transparent), color-mix(in srgb, var(--brand-grad-to) 6%, transparent));
   }
->>>>>>> Stashed changes
 }
