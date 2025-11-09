@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+import Tilt from "react-parallax-tilt";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
@@ -61,16 +63,33 @@ export default function Services() {
               Comprehensive digital solutions tailored to your business needs. 
               From strategy to execution, we've got you covered.
             </p>
+            <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
 
           <div className="space-y-12 mb-20">
             {services.map((service, index) => (
               <AnimatedSection key={index} delay={index * 100}>
-                <Card
-                  className="overflow-hidden hover-elevate active-elevate-2 transition-all duration-300"
-                  data-testid={`card-service-detail-${index}`}
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 20 }}
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+                  <Tilt
+                    tiltMaxAngleX={8}
+                    tiltMaxAngleY={8}
+                    glareEnable={true}
+                    glareMaxOpacity={0.06}
+                    scale={1}
+                    className="group"
+                  >
+                    <Card
+                      className="glow-border relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl"
+                      data-testid={`card-service-detail-${index}`}
+                    >
+                      <div className="glow-inner" />
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
                     <div>
                       <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
                         <service.icon className="w-7 h-7 text-primary" />
@@ -95,6 +114,8 @@ export default function Services() {
                     </div>
                   </div>
                 </Card>
+              </Tilt>
+            </motion.div>
               </AnimatedSection>
             ))}
           </div>
@@ -110,8 +131,8 @@ export default function Services() {
                     Our Quality Guarantee
                   </h3>
                   <p className="text-muted-foreground leading-relaxed" data-testid="text-guarantee-content">
-                    Every project comes with our comprehensive quality guarantee. We offer ongoing support, 
-                    performance monitoring, and regular updates to ensure your digital products continue to 
+                    Every project comes with our comprehensive quality guarantee. We offer ongoing support,
+                    performance monitoring, and regular updates to ensure your digital products continue to
                     deliver exceptional results. Your satisfaction is our top priority.
                   </p>
                 </div>

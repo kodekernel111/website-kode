@@ -1,8 +1,10 @@
+
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+import ThreeScene from "./ThreeScene";
 
 export default function HeroSection() {
   const [scrollY, setScrollY] = useState(0);
@@ -21,6 +23,10 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
       
       <div className="absolute inset-0 overflow-hidden">
+        {/* 3D scene mounted behind hero content */}
+        <div className="absolute inset-0 -z-0 pointer-events-none">
+          <ThreeScene className="w-full h-full" />
+        </div>
         <div 
           className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"
           style={{ transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0005})` }}
@@ -71,16 +77,44 @@ export default function HeroSection() {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/contact">
-            <Button size="lg" className="gap-2 rounded-full px-8" data-testid="button-get-started">
-              Get Started
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              <Button size="lg" className="gap-2 rounded-full px-8 relative group overflow-hidden" data-testid="button-get-started">
+                <motion.span
+                  initial={{ x: 0 }}
+                  animate={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  className="inline-flex items-center"
+                >
+                  Get Started
+                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+                </motion.span>
+              </Button>
+            </motion.div>
           </Link>
           <Link href="/services">
-            <Button size="lg" variant="outline" className="gap-2 rounded-full px-8 backdrop-blur" data-testid="button-view-work">
-              <Play className="w-4 h-4" />
-              View Our Work
-            </Button>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="glow-border rounded-full"
+            >
+              <Button size="lg" variant="outline" className="gap-2 rounded-full px-8 backdrop-blur relative group" data-testid="button-view-work">
+                <motion.span
+                  initial={{ x: 0 }}
+                  animate={{ x: 0 }}
+                  whileHover={{ x: 4 }}
+                  className="inline-flex items-center"
+                >
+                  <Play className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
+                  View Our Work
+                </motion.span>
+              </Button>
+              <div className="glow-inner" />
+            </motion.div>
           </Link>
         </div>
 

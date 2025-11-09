@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+import Tilt from "react-parallax-tilt";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
@@ -51,12 +53,29 @@ export default function About() {
               We're a team of passionate developers and designers committed to delivering 
               exceptional web solutions that drive business growth.
             </p>
+            <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
             <AnimatedSection>
-              <Card className="p-8">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 220, damping: 20 }}
+              >
+                <Tilt
+                  tiltMaxAngleX={8}
+                  tiltMaxAngleY={8}
+                  glareEnable={true}
+                  glareMaxOpacity={0.06}
+                  scale={1}
+                  className="group"
+                >
+                  <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
+                    <div className="glow-inner" />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
                   <Target className="w-6 h-6 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold mb-4" data-testid="text-mission-title">Our Mission</h2>
@@ -65,21 +84,41 @@ export default function About() {
                   beautiful design, robust functionality, and measurable results. We believe in 
                   creating digital experiences that not only look great but drive real business value.
                 </p>
-              </Card>
+                  </Card>
+                </Tilt>
+              </motion.div>
             </AnimatedSection>
 
             <AnimatedSection delay={200}>
-              <Card className="p-8">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                  <Eye className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold mb-4" data-testid="text-vision-title">Our Vision</h2>
-                <p className="text-muted-foreground leading-relaxed" data-testid="text-vision-content">
-                  To become the most trusted partner for businesses seeking digital transformation. 
-                  We envision a future where technology seamlessly connects businesses with their 
-                  customers, creating meaningful interactions and lasting relationships.
-                </p>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 220, damping: 20 }}
+              >
+                <Tilt
+                  tiltMaxAngleX={8}
+                  tiltMaxAngleY={8}
+                  glareEnable={true}
+                  glareMaxOpacity={0.06}
+                  scale={1}
+                  className="group"
+                >
+                  <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
+                    <div className="glow-inner" />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+                      <Eye className="w-6 h-6 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4" data-testid="text-vision-title">Our Vision</h2>
+                    <p className="text-muted-foreground leading-relaxed" data-testid="text-vision-content">
+                      To become the most trusted partner for businesses seeking digital transformation. 
+                      We envision a future where technology seamlessly connects businesses with their 
+                      customers, creating meaningful interactions and lasting relationships.
+                    </p>
+                  </Card>
+                </Tilt>
+              </motion.div>
             </AnimatedSection>
           </div>
 
@@ -89,8 +128,25 @@ export default function About() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {values.map((value, index) => (
-                <Card key={index} className="p-6 text-center" data-testid={`card-value-${index}`}>
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 20 }}
+                >
+                  <Tilt
+                    tiltMaxAngleX={8}
+                    tiltMaxAngleY={8}
+                    glareEnable={true}
+                    glareMaxOpacity={0.06}
+                    scale={1}
+                    className="group h-full"
+                  >
+                    <Card className="glow-border p-6 text-center relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl h-full" data-testid={`card-value-${index}`}>
+                      <div className="glow-inner" />
+                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <value.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="font-semibold mb-2" data-testid={`text-value-title-${index}`}>
@@ -99,7 +155,9 @@ export default function About() {
                   <p className="text-sm text-muted-foreground" data-testid={`text-value-description-${index}`}>
                     {value.description}
                   </p>
-                </Card>
+                    </Card>
+                  </Tilt>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -110,8 +168,25 @@ export default function About() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {team.map((member, index) => (
-                <Card key={index} className="p-6 text-center hover-elevate active-elevate-2 transition-all duration-300" data-testid={`card-team-${index}`}>
-                  <Avatar className="w-24 h-24 mx-auto mb-4">
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 20 }}
+                >
+                  <Tilt
+                    tiltMaxAngleX={8}
+                    tiltMaxAngleY={8}
+                    glareEnable={true}
+                    glareMaxOpacity={0.06}
+                    scale={1}
+                    className="group h-full"
+                  >
+                    <Card className="glow-border p-6 text-center relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl h-full" data-testid={`card-team-${index}`}>
+                      <div className="glow-inner" />
+                      <Avatar className="w-24 h-24 mx-auto mb-4">
                     <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
                       {member.initials}
                     </AvatarFallback>
@@ -122,7 +197,9 @@ export default function About() {
                   <p className="text-sm text-muted-foreground" data-testid={`text-team-role-${index}`}>
                     {member.role}
                   </p>
-                </Card>
+                    </Card>
+                  </Tilt>
+                </motion.div>
               ))}
             </div>
           </div>
