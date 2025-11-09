@@ -20,6 +20,7 @@ export default function Testimonials() {
               Hear from our satisfied clients about their experience working with Kodekernel. 
               Their success stories inspire us to deliver exceptional results every day.
             </p>
+            <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
         </div>
       </section>
