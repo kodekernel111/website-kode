@@ -66,17 +66,12 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-
-  // Bind to localhost and avoid using reusePort which can cause
-  // `ENOTSUP: operation not supported on socket` on some platforms
-  // (e.g. certain macOS / Node combinations). If you need external
-  // access, set PORT and HOST appropriately or remove this change.
-  const host = process.env.HOST || "127.0.0.1";
-
+  // Note: `reusePort` is not supported on all platforms and can cause
+  // ENOTSUP errors (operation not supported on socket) on some macOS setups.
+  // Start the server without reusePort for maximum compatibility.
   server.listen({
     port,
-    host,
-
+    host: "0.0.0.0",
   }, () => {
     log(`serving on port ${port}`);
   });
