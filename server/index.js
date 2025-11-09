@@ -76,6 +76,7 @@ app.use((req, res, next) => {
   server.listen({
     port,
     host,
+
   }, () => {
     log(`serving on port ${port}`);
   });

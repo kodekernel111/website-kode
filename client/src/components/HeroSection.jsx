@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import ThreeScene from "./ThreeScene";
 
 export default function HeroSection() {
   const [scrollY, setScrollY] = useState(0);
@@ -21,6 +22,10 @@ export default function HeroSection() {
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
       
       <div className="absolute inset-0 overflow-hidden">
+        {/* 3D scene mounted behind hero content */}
+        <div className="absolute inset-0 -z-0 pointer-events-none">
+          <ThreeScene className="w-full h-full" />
+        </div>
         <div 
           className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"
           style={{ transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0005})` }}
