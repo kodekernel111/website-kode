@@ -28,7 +28,7 @@ export default function Navigation() {
               className="w-16 h-16 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] drop-shadow-[0_0_25px_rgba(56,189,248,0.25)] hover:drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:drop-shadow-[0_0_35px_rgba(56,189,248,0.4)] transition-all duration-300" 
               data-testid="logo-icon" 
             />
-            <span className="text-xl font-bold tracking-tight" data-testid="text-brand">Kodekernel</span>
+            <span className="text-xl font-bold tracking-tight text-white" data-testid="text-brand">Kodekernel</span>
           </Link>
 
           <div className="hidden lg:flex items-center gap-1">
@@ -36,7 +36,7 @@ export default function Navigation() {
               <Link key={link.href} href={link.href}>
                 <Button
                   variant="ghost"
-                  className={location === link.href ? "bg-accent" : ""}
+                  className={`text-white ${location === link.href ? "bg-accent" : ""}`}
                   data-testid={`link-nav-${link.label.toLowerCase()}`}
                 >
                   {link.label}
@@ -47,7 +47,7 @@ export default function Navigation() {
 
           <div className="hidden lg:flex items-center gap-3">
             <Link href="/donate">
-              <Button variant="outline" data-testid="button-donate">
+              <Button variant="outline" className="text-white" data-testid="button-donate">
                 Buy us a Coffee
               </Button>
             </Link>
@@ -75,7 +75,7 @@ export default function Navigation() {
               <Link key={link.href} href={link.href}>
                 <Button
                   variant="ghost"
-                  className={`w-full justify-start ${location === link.href ? "bg-accent" : ""}`}
+                  className={`w-full justify-start text-white ${location === link.href ? "bg-accent" : ""}`}
                   onClick={() => setMobileMenuOpen(false)}
                   data-testid={`link-mobile-${link.label.toLowerCase()}`}
                 >
@@ -85,7 +85,7 @@ export default function Navigation() {
             ))}
             <div className="pt-4 space-y-2">
               <Link href="/donate">
-                <Button variant="outline" className="w-full" data-testid="button-mobile-donate">
+                <Button variant="outline" className="w-full text-white" data-testid="button-mobile-donate">
                   Buy us a Coffee
                 </Button>
               </Link>

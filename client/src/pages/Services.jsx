@@ -1,3 +1,5 @@
+import { motion } from "framer-motion";
+import Tilt from "react-parallax-tilt";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
@@ -66,11 +68,27 @@ export default function Services() {
           <div className="space-y-12 mb-20">
             {services.map((service, index) => (
               <AnimatedSection key={index} delay={index * 100}>
-                <Card
-                  className="overflow-hidden hover-elevate active-elevate-2 transition-all duration-300"
-                  data-testid={`card-service-detail-${index}`}
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 220, damping: 20 }}
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+                  <Tilt
+                    tiltMaxAngleX={8}
+                    tiltMaxAngleY={8}
+                    glareEnable={true}
+                    glareMaxOpacity={0.06}
+                    scale={1}
+                    className="group"
+                  >
+                    <Card
+                      className="glow-border relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl"
+                      data-testid={`card-service-detail-${index}`}
+                    >
+                      <div className="glow-inner" />
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
                     <div>
                       <div className="w-14 h-14 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
                         <service.icon className="w-7 h-7 text-primary" />
@@ -95,13 +113,31 @@ export default function Services() {
                     </div>
                   </div>
                 </Card>
+              </Tilt>
+            </motion.div>
               </AnimatedSection>
             ))}
           </div>
 
           <div className="mb-20">
-            <Card className="p-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
-              <div className="flex items-start gap-6">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 220, damping: 20 }}
+            >
+              <Tilt
+                tiltMaxAngleX={8}
+                tiltMaxAngleY={8}
+                glareEnable={true}
+                glareMaxOpacity={0.06}
+                scale={1}
+                className="group"
+              >
+                <Card className="glow-border p-8 bg-gradient-to-r from-primary/5 to-accent/5 border-transparent relative overflow-hidden rounded-2xl hover:shadow-2xl transition-all duration-300">
+                  <div className="glow-inner" />
+                  <div className="flex items-start gap-6">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Shield className="w-6 h-6 text-primary" />
                 </div>
@@ -116,7 +152,9 @@ export default function Services() {
                   </p>
                 </div>
               </div>
-            </Card>
+                </Card>
+              </Tilt>
+            </motion.div>
           </div>
         </div>
       </section>
