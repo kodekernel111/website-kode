@@ -109,6 +109,9 @@ export default function PortfolioShowcase() {
                     <img
                       src={project.image}
                       alt={project.title}
+                      loading="lazy"
+                      decoding="async"
+                      fetchPriority="low"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       data-testid={`img-project-${index}`}
                     />
