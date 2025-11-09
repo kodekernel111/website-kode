@@ -46,12 +46,13 @@ export default function ServicesGrid() {
     <section className="py-20 lg:py-32">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-services-title">
+                    <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-services-title">
             Our Services
           </h2>
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-services-subtitle">
-            Comprehensive solutions tailored to your needs, from concept to deployment and beyond.
+            We deliver end-to-end digital solutions tailored to your business needs.
           </p>
+          <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
