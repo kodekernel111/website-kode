@@ -53,6 +53,7 @@ export default function About() {
               We're a team of passionate developers and designers committed to delivering 
               exceptional web solutions that drive business growth.
             </p>
+            <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">

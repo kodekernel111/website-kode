@@ -63,6 +63,7 @@ export default function Services() {
               Comprehensive digital solutions tailored to your business needs. 
               From strategy to execution, we've got you covered.
             </p>
+            <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
 
           <div className="space-y-12 mb-20">
