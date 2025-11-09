@@ -15,12 +15,17 @@
   --elevate-2: rgba(0,0,0, .08);
 
   --background: 0 0% 98%;
+  /* light background with subtle brand tint */
+  --background: 252 95% 99%;
 
   --foreground: 222 15% 12%;
 
   --border: 220 3% 88%;
 
   --card: 0 0% 96%;
+
+  /* cards get a subtle warm purple tint */
+  --card: 252 96% 98%;
 
   --card-foreground: 222 15% 12%;
 
@@ -73,6 +78,14 @@
   --chart-1: 222 80% 28%;
   --chart-2: 200 75% 32%;
   --chart-3: 280 70% 35%;
+  /* Brand purple-blue theme to match 3D scene */
+  --primary: 252 80% 48%;
+  --sidebar-primary: 252 80% 48%;
+  --primary-foreground: 210 20% 98%;
+  --sidebar-primary-foreground: 210 20% 98%;
+  --chart-1: 252 80% 48%;
+  --brand-grad-from: #F0ABFC;
+  --brand-grad-to: #60A5FA;
   --chart-4: 45 85% 28%;
   --chart-5: 160 70% 30%;
 
@@ -139,6 +152,8 @@
   --border: 222 5% 18%;
 
   --card: 222 5% 11%;
+  /* dark-mode card with purple-blue tint */
+  --card: 252 18% 12%;
 
   --card-foreground: 210 8% 92%;
 
@@ -189,6 +204,12 @@
   --input: 222 8% 30%;
   --ring: 222 70% 60%;
   --chart-1: 222 75% 60%;
+  /* Dark-mode brand overrides */
+  --primary: 252 72% 62%;
+  --sidebar-primary: 252 72% 62%;
+  --primary-foreground: 222 10% 98%;
+  --sidebar-primary-foreground: 222 10% 98%;
+  --chart-1: 252 72% 62%;
   --chart-2: 200 70% 65%;
   --chart-3: 280 65% 70%;
   --chart-4: 45 80% 65%;
@@ -210,6 +231,7 @@
   }
 
   body {
+    /* keep typography and use themed background so pages relying on it don't break */
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
@@ -324,4 +346,113 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+}
+
+<<<<<<< Updated upstream
+/* Neon / gradient glow border animation */
+@keyframes gradientGlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Use ::before as an animated border. The mask technique creates a frame-like border */
+.glow-border {
+  position: relative;
+}
+
+.glow-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 1rem; /* matches rounded-2xl */
+  padding: 2px; /* thickness of the visible border */
+  background: linear-gradient(90deg, #00ffff, #6366f1, #8b5cf6, #ec4899, #00ffff);
+  background-size: 200% 200%;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  mask-composite: exclude;
+  opacity: 0;
+  transform: translateZ(0);
+  transition: opacity 0.28s ease, filter 0.28s ease;
+  filter: blur(8px) saturate(180%);
+}
+
+.glow-border:hover::before,
+.glow-border.group-hover\:opacity-100::before,
+.glow-border.group:hover::before {
+  opacity: 1;
+  animation: gradientGlow 4s ease infinite;
+}
+
+/* inner glow/shadow to make border feel powered-up */
+.glow-border .glow-inner {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 12px 40px rgba(99,102,241,0.08), inset 0 0 24px rgba(14,165,233,0.06);
+  opacity: 0;
+  transition: opacity 0.28s ease, box-shadow 0.28s ease;
+}
+
+.glow-border:hover .glow-inner,
+.glow-border.group:hover .glow-inner {
+  opacity: 1;
+  box-shadow: 0 18px 80px rgba(99,102,241,0.25), inset 0 0 40px rgba(14,165,233,0.15);
+}
+
+/* Keep visuals subtle on small screens */
+@media (max-width: 640px) {
+  .glow-border::before { filter: blur(4px) saturate(120%); }
+  .glow-border .glow-inner { box-shadow: 0 8px 24px rgba(99,102,241,0.08), inset 0 0 20px rgba(14,165,233,0.04); }
+=======
+/* Brand-wide component styles to unify theme */
+@layer components {
+  .btn {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.03);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary-border));
+    padding: 0.45rem 0.9rem;
+    border-radius: 0.5rem;
+  }
+
+  a,
+  .link {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    transition: color 140ms ease, text-decoration 140ms ease;
+  }
+
+  a:hover,
+  .link:hover {
+    color: hsl(var(--primary-foreground));
+    text-decoration: underline;
+  }
+
+  header,
+  footer,
+  .card {
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--brand-grad-from) 14%, transparent), color-mix(in srgb, var(--brand-grad-to) 6%, transparent));
+  }
+>>>>>>> Stashed changes
 }
