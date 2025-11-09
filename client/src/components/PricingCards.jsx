@@ -73,9 +73,9 @@ export default function PricingCards() {
           {plans.map((plan, index) => (
             <Card
               key={index}
-              className={`p-8 hover-elevate active-elevate-2 transition-all duration-300 hover:-translate-y-1 ${
-                plan.popular ? "border-primary border-2" : ""
-              }`}
+              className={`p-8 hover-elevate active-elevate-2 transition-all duration-300 hover:-translate-y-1 border ${
+                plan.popular ? "border-primary border-2" : "border-muted hover:border-primary"
+              } hover:shadow-[0_0_15px_rgba(124,58,237,0.3)]`}
               data-testid={`card-pricing-${index}`}
             >
               {plan.popular && (

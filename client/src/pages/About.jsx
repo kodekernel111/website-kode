@@ -89,18 +89,35 @@ export default function About() {
             </AnimatedSection>
 
             <AnimatedSection delay={200}>
-              <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
-                <div className="glow-inner" />
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                  <Eye className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold mb-4" data-testid="text-vision-title">Our Vision</h2>
-                <p className="text-muted-foreground leading-relaxed" data-testid="text-vision-content">
-                  To become the most trusted partner for businesses seeking digital transformation. 
-                  We envision a future where technology seamlessly connects businesses with their 
-                  customers, creating meaningful interactions and lasting relationships.
-                </p>
-              </Card>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 220, damping: 20 }}
+              >
+                <Tilt
+                  tiltMaxAngleX={8}
+                  tiltMaxAngleY={8}
+                  glareEnable={true}
+                  glareMaxOpacity={0.06}
+                  scale={1}
+                  className="group"
+                >
+                  <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
+                    <div className="glow-inner" />
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
+                      <Eye className="w-6 h-6 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4" data-testid="text-vision-title">Our Vision</h2>
+                    <p className="text-muted-foreground leading-relaxed" data-testid="text-vision-content">
+                      To become the most trusted partner for businesses seeking digital transformation. 
+                      We envision a future where technology seamlessly connects businesses with their 
+                      customers, creating meaningful interactions and lasting relationships.
+                    </p>
+                  </Card>
+                </Tilt>
+              </motion.div>
             </AnimatedSection>
           </div>
 

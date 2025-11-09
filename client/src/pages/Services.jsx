@@ -120,24 +120,8 @@ export default function Services() {
           </div>
 
           <div className="mb-20">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 220, damping: 20 }}
-            >
-              <Tilt
-                tiltMaxAngleX={8}
-                tiltMaxAngleY={8}
-                glareEnable={true}
-                glareMaxOpacity={0.06}
-                scale={1}
-                className="group"
-              >
-                <Card className="glow-border p-8 bg-gradient-to-r from-primary/5 to-accent/5 border-transparent relative overflow-hidden rounded-2xl hover:shadow-2xl transition-all duration-300">
-                  <div className="glow-inner" />
-                  <div className="flex items-start gap-6">
+            <Card className="p-8 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
+              <div className="flex items-start gap-6">
                 <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Shield className="w-6 h-6 text-primary" />
                 </div>
@@ -146,15 +130,13 @@ export default function Services() {
                     Our Quality Guarantee
                   </h3>
                   <p className="text-muted-foreground leading-relaxed" data-testid="text-guarantee-content">
-                    Every project comes with our comprehensive quality guarantee. We offer ongoing support, 
-                    performance monitoring, and regular updates to ensure your digital products continue to 
+                    Every project comes with our comprehensive quality guarantee. We offer ongoing support,
+                    performance monitoring, and regular updates to ensure your digital products continue to
                     deliver exceptional results. Your satisfaction is our top priority.
                   </p>
                 </div>
               </div>
-                </Card>
-              </Tilt>
-            </motion.div>
+            </Card>
           </div>
         </div>
       </section>
