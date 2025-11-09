@@ -1,5 +1,11 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { gsap } from "gsap";
 
 export default function ThreeScene({ className = "" }) {
@@ -28,7 +34,7 @@ export default function ThreeScene({ className = "" }) {
     dir.position.set(5, 5, 5);
     scene.add(dir);
 
-    // Geometry: a subtle torus knot + particle field
+    // Geometry: create a subtle torus knot fallback and try loading a GLTF model
     const geometry = new THREE.TorusKnotGeometry(1.2, 0.35, 128, 32);
     const material = new THREE.MeshStandardMaterial({
       color: 0x4f46e5,
@@ -40,6 +46,94 @@ export default function ThreeScene({ className = "" }) {
     const knot = new THREE.Mesh(geometry, material);
     knot.scale.setScalar(0.9);
     scene.add(knot);
+
+    // centerObject is the thing we animate; start with the torus knot as fallback
+    let centerObject = knot;
+
+    // --- Post-processing composer (bloom + FXAA) ---
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    const bloom = new UnrealBloomPass(new THREE.Vector2(mount.clientWidth, mount.clientHeight), 0.6, 0.8, 0.1);
+    bloom.threshold = 0.15;
+    bloom.strength = 0.9;
+    bloom.radius = 0.6;
+    composer.addPass(bloom);
+
+    const fxaa = new ShaderPass(FXAAShader);
+    const pixelRatio = renderer.getPixelRatio();
+    fxaa.material.uniforms["resolution"].value.x = 1 / (mount.clientWidth * pixelRatio);
+    fxaa.material.uniforms["resolution"].value.y = 1 / (mount.clientHeight * pixelRatio);
+    composer.addPass(fxaa);
+
+    // helper to apply rim shader via onBeforeCompile to a MeshStandardMaterial
+    const applyRim = (mat, color = new THREE.Color(0x7c3aed), intensity = 0.9, power = 2.0) => {
+      if (!mat || !mat.onBeforeCompile) return;
+      mat.onBeforeCompile = (shader) => {
+        shader.uniforms.rimColor = { value: color };
+        shader.uniforms.rimIntensity = { value: intensity };
+        shader.uniforms.rimPower = { value: power };
+        shader.fragmentShader = 'uniform vec3 rimColor; uniform float rimIntensity; uniform float rimPower;\n' + shader.fragmentShader;
+        shader.fragmentShader = shader.fragmentShader.replace(
+          'void main() {',
+          'void main() {\n    vec3 viewDir = normalize(-vViewPosition);\n    float rim = pow(1.0 - max(dot(normalize(vNormal), viewDir), 0.0), rimPower);\n    vec3 rimAdd = rimColor * rim * rimIntensity;'
+        );
+        shader.fragmentShader = shader.fragmentShader.replace('#include <output_fragment>', '#include <output_fragment>\n    gl_FragColor.rgb += rimAdd;');
+      };
+      mat.needsUpdate = true;
+    };
+
+    // apply rim to fallback material
+    applyRim(material, new THREE.Color(0x9f7aea), 0.7, 1.9);
+
+    // Try to load a GLTF model at /models/centerpiece.glb (place your exported GLB there).
+    const loader = new GLTFLoader();
+    let gltfScene = null;
+    loader.load(
+      "/models/centerpiece.glb",
+      (gltf) => {
+        try {
+          gltfScene = gltf.scene || gltf.scenes[0];
+          // apply our material style to the meshes to match the look
+          gltfScene.traverse((c) => {
+            if (c.isMesh) {
+              c.castShadow = true;
+              c.receiveShadow = true;
+              // create a fresh standard material to ensure consistent shading
+              const mat = new THREE.MeshStandardMaterial({
+                color: 0x4f46e5,
+                metalness: 0.6,
+                roughness: 0.2,
+                emissive: 0x0b1022,
+                emissiveIntensity: 0.2,
+              });
+              // preserve textures if the model provided them
+              if (c.material && c.material.map) mat.map = c.material.map;
+              c.material = mat;
+              // apply rim to model material too
+              try { applyRim(c.material, new THREE.Color(0x9f7aea), 0.6, 2.2); } catch (e) {}
+            }
+          });
+
+          // swap into scene
+          gltfScene.scale.setScalar(0.9);
+          gltfScene.position.copy(knot.position);
+          scene.add(gltfScene);
+          // remove fallback knot
+          scene.remove(knot);
+          centerObject = gltfScene;
+          // dispose fallback geometry/material
+          try { geometry.dispose(); material.dispose(); } catch (e) {}
+        } catch (e) {
+          console.warn("Error applying GLTF scene", e);
+        }
+      },
+      undefined,
+      (err) => {
+        console.warn("GLTF load failed, using fallback knot:", err);
+      }
+    );
 
   // Tag-universe: render HTML-like tags as sprites that orbit the scene
     // Particles
@@ -164,6 +258,16 @@ export default function ThreeScene({ className = "" }) {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
+      try {
+        composer.setSize(w, h);
+        const pixelRatio = renderer.getPixelRatio();
+        if (fxaa && fxaa.material && fxaa.material.uniforms && fxaa.material.uniforms["resolution"]) {
+          fxaa.material.uniforms["resolution"].value.x = 1 / (w * pixelRatio);
+          fxaa.material.uniforms["resolution"].value.y = 1 / (h * pixelRatio);
+        }
+      } catch (e) {
+        // composer may not be initialized in some cases
+      }
     };
     window.addEventListener("resize", onResize);
 
@@ -228,7 +332,12 @@ export default function ThreeScene({ className = "" }) {
           child.material.rotation += 0.0009 + (idx % 2 ? -0.0006 : 0.0006);
         });
 
-      renderer.render(scene, camera);
+      // use composer when available to include post-processing
+      try {
+        composer.render();
+      } catch (e) {
+        renderer.render(scene, camera);
+      }
       rafId = requestAnimationFrame(animate);
     };
     rafId = requestAnimationFrame(animate);
@@ -240,10 +349,18 @@ export default function ThreeScene({ className = "" }) {
   window.removeEventListener("pointermove", onPointerMove);
       mount.removeChild(renderer.domElement);
       // dispose geometries/materials
-      geometry.dispose();
-      material.dispose();
-      particles.dispose();
-      pMaterial.dispose();
+      try {
+        geometry.dispose();
+      } catch (e) {}
+      try {
+        material.dispose();
+      } catch (e) {}
+      try {
+        particles.dispose();
+      } catch (e) {}
+      try {
+        pMaterial.dispose();
+      } catch (e) {}
 
       // dispose tag resources (textures & materials)
       try {
@@ -262,6 +379,43 @@ export default function ThreeScene({ className = "" }) {
       } catch (e) {
         // ignore
       }
+
+      // dispose any loaded GLTF scene or centerObject meshes
+      try {
+        if (centerObject) {
+          scene.remove(centerObject);
+          if (centerObject.traverse) {
+            centerObject.traverse((c) => {
+              if (c.isMesh) {
+                try {
+                  if (c.geometry) c.geometry.dispose();
+                } catch (e) {}
+                try {
+                  if (c.material) {
+                    if (Array.isArray(c.material)) {
+                      c.material.forEach((m) => m.dispose());
+                    } else {
+                      c.material.dispose();
+                    }
+                  }
+                } catch (e) {}
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      // dispose composer and passes
+      try {
+        if (composer) {
+          composer.passes && composer.passes.forEach((p) => {
+            try {
+              if (p.dispose) p.dispose();
+            } catch (e) {}
+          });
+          if (composer.dispose) composer.dispose();
+        }
+      } catch (e) {}
 
       renderer.dispose();
     };
