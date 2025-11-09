@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import Lenis from "lenis";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
@@ -20,9 +21,60 @@ export default function ThreeScene({ className = "" }) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight, false);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    // We'll place the renderer as a fixed fullscreen background so the 3D scene
+    // becomes the app's background. Create or reuse a dedicated container
     renderer.domElement.style.width = "100%";
     renderer.domElement.style.height = "100%";
-    mount.appendChild(renderer.domElement);
+    renderer.domElement.style.position = "fixed";
+    renderer.domElement.style.left = "0";
+    renderer.domElement.style.top = "0";
+  // place canvas behind the overlay and content
+  renderer.domElement.style.zIndex = "-2";
+    renderer.domElement.style.pointerEvents = "none";
+
+    // prefer an existing background container so multiple mounts don't create duplicates
+    let bgContainer = document.getElementById("site-3d-bg");
+    let createdBg = false;
+    if (!bgContainer) {
+      bgContainer = document.createElement("div");
+      bgContainer.id = "site-3d-bg";
+      // ensure container fills the viewport and sits behind content
+      Object.assign(bgContainer.style, {
+        position: "fixed",
+        left: "0",
+        top: "0",
+        width: "100%",
+        height: "100%",
+        zIndex: -2,
+        overflow: "hidden",
+        pointerEvents: "none",
+      });
+      document.body.appendChild(bgContainer);
+      createdBg = true;
+    }
+    bgContainer.appendChild(renderer.domElement);
+
+    // create a subtle overlay between canvas and page content to preserve contrast
+    let overlay = document.getElementById("site-3d-overlay");
+    let createdOverlay = false;
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "site-3d-overlay";
+      Object.assign(overlay.style, {
+        position: "fixed",
+        left: "0",
+        top: "0",
+        width: "100%",
+        height: "100%",
+        zIndex: -1,
+        pointerEvents: "none",
+        // subtle translucent layer to keep text readable on top of animated background
+        background: "linear-gradient(180deg, rgba(10,12,22,0.02), rgba(10,12,22,0.06))",
+        mixBlendMode: "normal",
+      });
+      document.body.appendChild(overlay);
+      createdOverlay = true;
+    }
 
     const camera = new THREE.PerspectiveCamera(50, mount.clientWidth / mount.clientHeight, 0.1, 1000);
     camera.position.set(0, 0, 6);
@@ -253,8 +305,9 @@ export default function ThreeScene({ className = "" }) {
 
     // Responsive resize
     const onResize = () => {
-      const w = mount.clientWidth;
-      const h = mount.clientHeight;
+      // fullscreen background uses viewport size
+      const w = window.innerWidth;
+      const h = window.innerHeight;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h, false);
@@ -304,9 +357,28 @@ export default function ThreeScene({ className = "" }) {
     };
     window.addEventListener("pointermove", onPointerMove);
 
+    // Lenis smooth scroll instance — we'll use it to drive camera movement
+    const lenis = new Lenis({
+      smooth: true,
+      duration: 1.2,
+      lerp: 0.12,
+    });
+
+    // Integrate Lenis RAF with our rendering loop by calling lenis.raf(time)
+    // Also handle resize of page height if necessary
+    const onLenisScroll = () => {
+      // no-op: we sample lenis.scroll inside the render loop for smooth camera updates
+    };
+    lenis.on("scroll", onLenisScroll);
+
     let rafId;
     const animate = (time) => {
       const t = time * 0.001;
+
+      // update lenis
+      try {
+        lenis.raf(time);
+      } catch (e) {}
 
       // smoothly approach target rotation (lerp)
       knot.rotation.x += (targetRot.x - knot.rotation.x) * 0.06;
@@ -336,7 +408,24 @@ export default function ThreeScene({ className = "" }) {
       try {
         composer.render();
       } catch (e) {
-        renderer.render(scene, camera);
+        // camera scroll-driven positioning via Lenis
+        try {
+          const maxScroll = Math.max(document.body.scrollHeight - window.innerHeight, 1);
+          const scrollVal = Math.max(0, Math.min(lenis.scroll || 0, maxScroll));
+          const n = maxScroll > 0 ? scrollVal / maxScroll : 0;
+          // map normalized scroll to camera transforms
+          const targetZ = 6 - n * 2.8; // zoom in slightly when scrolling
+          const targetY = -n * 2.0; // move camera down as user scrolls
+          camera.position.y += (targetY - camera.position.y) * 0.06;
+          camera.position.z += (targetZ - camera.position.z) * 0.06;
+        } catch (e) {}
+
+        // use composer when available to include post-processing
+        try {
+          composer.render();
+        } catch (e) {
+          renderer.render(scene, camera);
+        }
       }
       rafId = requestAnimationFrame(animate);
     };
@@ -347,7 +436,12 @@ export default function ThreeScene({ className = "" }) {
       cancelAnimationFrame(rafId);
   window.removeEventListener("resize", onResize);
   window.removeEventListener("pointermove", onPointerMove);
-      mount.removeChild(renderer.domElement);
+  // remove renderer DOM element from whichever parent it was appended to
+  try {
+    if (renderer.domElement && renderer.domElement.parentElement) {
+      renderer.domElement.parentElement.removeChild(renderer.domElement);
+    }
+  } catch (e) {}
       // dispose geometries/materials
       try {
         geometry.dispose();
@@ -379,6 +473,26 @@ export default function ThreeScene({ className = "" }) {
       } catch (e) {
         // ignore
       }
+
+      // remove background container if we created it
+      try {
+        if (createdBg && bgContainer && bgContainer.parentElement) {
+          bgContainer.parentElement.removeChild(bgContainer);
+        }
+      } catch (e) {}
+
+      // remove overlay if we created it
+      try {
+        if (createdOverlay && overlay && overlay.parentElement) {
+          overlay.parentElement.removeChild(overlay);
+        }
+      } catch (e) {}
+
+      // remove lenis listeners and destroy
+      try {
+        lenis.off && lenis.off("scroll", onLenisScroll);
+        lenis.destroy && lenis.destroy();
+      } catch (e) {}
 
       // dispose any loaded GLTF scene or centerObject meshes
       try {
