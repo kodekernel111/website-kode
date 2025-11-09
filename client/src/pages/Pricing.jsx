@@ -33,6 +33,7 @@ export default function Pricing() {
               Transparent pricing designed to fit your budget. All plans include our 
               premium support and satisfaction guarantee.
             </p>
+            <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
         </div>
       </section>
