@@ -14,6 +14,8 @@ import BlogPost from "@/pages/BlogPost";
 import Testimonials from "@/pages/Testimonials";
 import Contact from "@/pages/Contact";
 import Donate from "@/pages/Donate";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
 import Lenis from "lenis";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -39,6 +41,8 @@ function Router() {
           <Route path="/testimonials" component={Testimonials} />
           <Route path="/contact" component={Contact} />
           <Route path="/donate" component={Donate} />
+          <Route path="/privacypolicy" component={PrivacyPolicy} />
+          <Route path="/termsofservice" component={TermsOfService} />
           <Route component={NotFound} />
         </Switch>
       </motion.div>

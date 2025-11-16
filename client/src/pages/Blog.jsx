@@ -72,10 +72,11 @@ export default function Blog() {
             <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-blog-title">
               Our Blog
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8" data-testid="text-blog-subtitle">
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8" data-testid="text-blog-subtitle">
               Technical insights, industry trends, and expert perspectives from our team. 
               Published every weekend.
             </p>
+            <span className="block text-xs text-muted-foreground/70 italic mb-4">More articles & features coming soon!</span>
             <div className="h-px w-48 mx-auto mt-8 mb-12 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
 
             <div className="max-w-2xl mx-auto relative">
@@ -97,7 +98,7 @@ export default function Blog() {
           </div>
 
           <div className="text-center mt-12">
-            <Button variant="outline" size="lg" data-testid="button-load-more">
+            <Button variant="outline" size="lg" data-testid="button-load-more" disabled className="opacity-60 cursor-not-allowed">
               Load More Articles
             </Button>
           </div>

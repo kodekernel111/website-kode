@@ -3,6 +3,7 @@ import { Star, Quote } from "lucide-react";
 import { motion } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useState } from "react";
 
 const testimonials = [
   {
@@ -61,7 +62,9 @@ export default function TestimonialsSection() {
     enter: { opacity: 1, y: 0 },
     hover: { scale: 1.03, rotate: 0.5 },
   };
+  const [hovered, setHovered] = useState(null);
 
+  // Render
   return (
     <section className="py-20 lg:py-32 bg-card">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
@@ -69,7 +72,7 @@ export default function TestimonialsSection() {
           <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-testimonials-title">
             What Our Clients Say
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-testimonials-subtitle">
+          <p className="text-[11px] text-muted-foreground max-w-3xl mx-auto" data-testid="text-testimonials-subtitle">
             Don't just take our word for it. Here's what our satisfied clients have to say about working with us.
           </p>
           <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
@@ -97,19 +100,28 @@ export default function TestimonialsSection() {
                 <Card
                   className="glow-border relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl p-8"
                   data-testid={`card-testimonial-${index}`}
+                  onMouseEnter={() => setHovered(index)}
+                  onMouseLeave={() => setHovered(null)}
                 >
                   <Quote className="w-10 h-10 text-primary/20 mb-4" />
-                  
                   <div className="flex gap-1 mb-4">
                     {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-primary text-primary" data-testid={`star-${index}-${i}`} />
+                      <motion.span
+                        key={i}
+                        animate={hovered === index ? {
+                          scale: [1, 1.3, 1],
+                          rotate: [0, 15, -10, 0],
+                          transition: { delay: 0.05 * i, duration: 0.6, type: 'spring', stiffness: 300, damping: 18 },
+                        } : { scale: 1, rotate: 0 }}
+                        className="inline-block"
+                      >
+                        <Star className="w-4 h-4 fill-primary text-primary drop-shadow" data-testid={`star-${index}-${i}`} />
+                      </motion.span>
                     ))}
                   </div>
-
-                  <p className="text-muted-foreground mb-6 leading-relaxed" data-testid={`text-testimonial-content-${index}`}>
+                  <p className="text-sm italic text-muted-foreground mb-6 leading-relaxed" data-testid={`text-testimonial-content-${index}`}>
                     "{testimonial.content}"
                   </p>
-
                   <div className="flex items-center gap-3">
                     <Avatar>
                       <AvatarFallback className="bg-primary/10 text-primary font-semibold">
@@ -117,10 +129,10 @@ export default function TestimonialsSection() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-semibold" data-testid={`text-testimonial-name-${index}`}>
+                      <div className="font-semibold text-sm" data-testid={`text-testimonial-name-${index}`}>
                         {testimonial.name}
                       </div>
-                      <div className="text-sm text-muted-foreground" data-testid={`text-testimonial-role-${index}`}>
+                      <div className="text-xs text-muted-foreground" data-testid={`text-testimonial-role-${index}`}>
                         {testimonial.role}
                       </div>
                     </div>

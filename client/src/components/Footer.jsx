@@ -18,9 +18,9 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12">
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2 mb-6">
+            <Link href="/" className="flex items-center gap-2 mb-6 no-underline">
               <Code2 className="w-8 h-8 text-primary" />
-              <span className="text-xl font-bold">Kodekernel</span>
+              <span className="text-xl font-bold no-underline text-foreground hover:text-foreground focus:text-foreground" style={{ textDecoration: 'none' }}>Kodekernel</span>
             </Link>
             <p className="text-muted-foreground mb-6 leading-relaxed">
               Delivering premium web design and development SaaS solutions to transform your digital presence.
@@ -41,37 +41,37 @@ export default function Footer() {
           <div>
             <h3 className="font-semibold mb-4" data-testid="text-footer-company">Company</h3>
             <ul className="space-y-3">
-              <li><Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-about">About Us</Link></li>
-              <li><Link href="/services" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-services">Services</Link></li>
-              <li><Link href="/testimonials" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-testimonials">Testimonials</Link></li>
-              <li><Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-contact">Contact</Link></li>
+              <li><Link href="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-footer-about">About Us</Link></li>
+              <li><Link href="/services" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-footer-services">Services</Link></li>
+              <li><Link href="/testimonials" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-footer-testimonials">Testimonials</Link></li>
+              <li><Link href="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-footer-contact">Contact</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-4" data-testid="text-footer-resources">Resources</h3>
             <ul className="space-y-3">
-              <li><Link href="/blog" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-blog">Blog</Link></li>
-              <li><Link href="/pricing" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-pricing">Pricing</Link></li>
-              <li><Link href="/donate" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-footer-donate">Support Us</Link></li>
+              <li><Link href="/blog" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-footer-blog">Blog</Link></li>
+              <li><Link href="/pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-footer-pricing">Pricing</Link></li>
+              <li><Link href="/donate" className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-footer-donate">Support Us</Link></li>
             </ul>
           </div>
 
           <div>
             <h3 className="font-semibold mb-4" data-testid="text-footer-newsletter">Newsletter</h3>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="text-sm text-muted-foreground mb-2">
               Stay updated with our latest insights and updates.
             </p>
-            <form onSubmit={handleNewsletterSubmit} className="space-y-2">
+            <p className="text-xs text-muted-foreground mb-4 italic">Coming soon</p>
+            <form className="space-y-2 opacity-60 pointer-events-none select-none">
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                disabled
                 data-testid="input-newsletter-email"
               />
-              <Button type="submit" className="w-full" data-testid="button-newsletter-submit">
+              <Button type="button" className="w-full" disabled data-testid="button-newsletter-submit">
                 Subscribe
               </Button>
             </form>
@@ -83,8 +83,8 @@ export default function Footer() {
             © 2025 Kodekernel. All rights reserved.
           </p>
           <div className="flex gap-6 text-sm">
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-privacy">Privacy Policy</a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors" data-testid="link-terms">Terms of Service</a>
+            <Link href="/privacypolicy" className="text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-privacy">Privacy Policy</Link>
+            <Link href="/termsofservice" className="text-muted-foreground hover:text-foreground transition-colors no-underline" data-testid="link-terms">Terms of Service</Link>
           </div>
         </div>
       </div>

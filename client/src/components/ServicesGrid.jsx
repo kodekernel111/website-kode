@@ -49,7 +49,7 @@ export default function ServicesGrid() {
                     <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-services-title">
             Our Services
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-services-subtitle">
+          <p className="text-sm text-muted-foreground max-w-3xl mx-auto" data-testid="text-services-subtitle">
             We deliver end-to-end digital solutions tailored to your business needs.
           </p>
           <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
@@ -77,7 +77,7 @@ export default function ServicesGrid() {
                   <h3 className="text-xl font-semibold mb-3" data-testid={`text-service-title-${index}`}>
                     {service.title}
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed" data-testid={`text-service-description-${index}`}>
+                  <p className="text-xs text-muted-foreground leading-relaxed" data-testid={`text-service-description-${index}`}>
                     {service.description}
                   </p>
                   <div className="glow-inner" />

@@ -69,7 +69,7 @@ export default function PortfolioShowcase() {
           <h2 className="text-4xl lg:text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500" data-testid="text-portfolio-title">
             Our Portfolio
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-portfolio-subtitle">
+          <p className="text-sm text-muted-foreground max-w-3xl mx-auto" data-testid="text-portfolio-subtitle">
             Explore our latest projects showcasing innovative design and cutting-edge technology.
           </p>
           <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
@@ -110,6 +110,8 @@ export default function PortfolioShowcase() {
                     <img
                       src={project.image}
                       alt={project.title}
+                      loading="lazy"
+                      fetchpriority="low"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       data-testid={`img-project-${index}`}
                     />
@@ -122,7 +124,17 @@ export default function PortfolioShowcase() {
                     <div className="text-sm text-primary font-medium mb-2" data-testid={`text-project-category-${index}`}>
                       {project.category}
                     </div>
-                    <h3 className="text-lg lg:text-xl font-semibold mb-3" data-testid={`text-project-title-${index}`}>
+                    <h3
+                      className={`font-semibold mb-3 ${[
+                        "Luxury E-Commerce Platform",
+                        "SaaS Analytics Dashboard",
+                        "Creative Portfolio Site",
+                        "Fintech Banking App",
+                        "Fine Dining Restaurant",
+                        "Tech Startup Landing"
+                      ].includes(project.title) ? "text-xs lg:text-sm" : "text-sm lg:text-base"}`}
+                      data-testid={`text-project-title-${index}`}
+                    >
                       {project.title}
                     </h3>
                     <div className="flex flex-wrap gap-2">

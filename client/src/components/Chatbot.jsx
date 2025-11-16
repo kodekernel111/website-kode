@@ -16,7 +16,7 @@ const faqs = [
   },
   {
     keywords: ["contact", "reach", "email", "phone"],
-    response: "You can reach us at hello@kodekernel.com or call us at +1 (555) 123-4567. Our office is located at 123 Tech Street, San Francisco, CA 94105."
+  response: "You can reach us at contact@kodekernel.com or call us at +1 (555) 123-4567. Our office is located at 123 Tech Street, San Francisco, CA 94105."
   },
   {
     keywords: ["timeline", "how long", "duration", "time"],

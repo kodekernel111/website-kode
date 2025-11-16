@@ -29,7 +29,7 @@ export default function Pricing() {
             <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-pricing-page-title">
               Pricing Plans
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-pricing-page-subtitle">
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-pricing-page-subtitle">
               Transparent pricing designed to fit your budget. All plans include our 
               premium support and satisfaction guarantee.
             </p>

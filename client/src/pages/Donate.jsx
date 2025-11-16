@@ -54,10 +54,12 @@ export default function Donate() {
             <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-donate-title">
               Buy Us a Coffee
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-donate-subtitle">
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8" data-testid="text-donate-subtitle">
               Love what we do? Support our team and help us continue creating amazing content, 
               tools, and resources for the developer community.
             </p>
+            <span className="block text-xs text-muted-foreground/70 italic mb-4">More donation options coming soon!</span>
+            <div className="h-px w-48 mx-auto mt-8 mb-12 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
 
           <AnimatedSection>
@@ -101,6 +103,7 @@ export default function Donate() {
                     setCustomAmount(e.target.value);
                     setSelectedAmount(0);
                   }}
+                  disabled
                   className="w-full h-12 pl-8 pr-4 rounded-md border border-input bg-background"
                   data-testid="input-custom-amount"
                 />
@@ -110,6 +113,7 @@ export default function Donate() {
             <Button
               size="lg"
               className="w-full gap-2"
+              disabled
               onClick={handleDonate}
               data-testid="button-donate-now"
             >

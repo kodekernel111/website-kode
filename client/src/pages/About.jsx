@@ -49,7 +49,7 @@ export default function About() {
             <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-about-title">
               About Kodekernel
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-about-subtitle">
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-about-subtitle">
               We're a team of passionate developers and designers committed to delivering 
               exceptional web solutions that drive business growth.
             </p>
@@ -79,7 +79,7 @@ export default function About() {
                   <Target className="w-6 h-6 text-primary" />
                 </div>
                 <h2 className="text-2xl font-bold mb-4" data-testid="text-mission-title">Our Mission</h2>
-                <p className="text-muted-foreground leading-relaxed" data-testid="text-mission-content">
+                <p className="text-xs text-muted-foreground leading-relaxed" data-testid="text-mission-content">
                   To empower businesses of all sizes with world-class web solutions that combine 
                   beautiful design, robust functionality, and measurable results. We believe in 
                   creating digital experiences that not only look great but drive real business value.
@@ -111,7 +111,7 @@ export default function About() {
                       <Eye className="w-6 h-6 text-primary" />
                     </div>
                     <h2 className="text-2xl font-bold mb-4" data-testid="text-vision-title">Our Vision</h2>
-                    <p className="text-muted-foreground leading-relaxed" data-testid="text-vision-content">
+                    <p className="text-xs text-muted-foreground leading-relaxed" data-testid="text-vision-content">
                       To become the most trusted partner for businesses seeking digital transformation. 
                       We envision a future where technology seamlessly connects businesses with their 
                       customers, creating meaningful interactions and lasting relationships.
@@ -152,7 +152,7 @@ export default function About() {
                   <h3 className="font-semibold mb-2" data-testid={`text-value-title-${index}`}>
                     {value.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground" data-testid={`text-value-description-${index}`}>
+                  <p className="text-xs text-muted-foreground" data-testid={`text-value-description-${index}`}>
                     {value.description}
                   </p>
                     </Card>

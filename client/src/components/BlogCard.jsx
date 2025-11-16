@@ -17,15 +17,15 @@ export default function BlogCard({
   featured = false,
 }) {
   return (
-    <Link href={`/blog/${id}`}>
+    <Link href={`/blog/${id}`} className="no-underline" style={{ textDecoration: 'none' }}>
       <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }}>
         <Card
-          className={`overflow-hidden hover-elevate active-elevate-2 transition-all duration-300 hover:-translate-y-1 group h-full ${
+          className={`overflow-hidden hover-elevate active-elevate-2 transition-all duration-300 hover:-translate-y-1 group h-[400px] flex flex-col justify-between ${
             featured ? "lg:col-span-2 lg:row-span-2" : ""
           }`}
           data-testid={`card-blog-${id}`}
         >
-        <div className={`relative overflow-hidden ${featured ? "aspect-[2/1]" : "aspect-video"}`}>
+        <div className="relative overflow-hidden w-full h-[160px]">
           <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
           <Badge className="absolute top-4 left-4" data-testid={`badge-category-${id}`}>
@@ -34,11 +34,19 @@ export default function BlogCard({
         </div>
 
         <div className="p-6">
-          <h3 className={`font-bold mb-3 line-clamp-2 ${featured ? "text-2xl" : "text-xl"}`} data-testid={`text-blog-title-${id}`}>
+          <h3
+            className={`font-bold mb-3 ${featured ? "text-2xl line-clamp-2" : "text-xl line-clamp-1"}`}
+            style={{ display: '-webkit-box', WebkitLineClamp: featured ? 2 : 1, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+            data-testid={`text-blog-title-${id}`}
+          >
             {title}
           </h3>
 
-          <p className={`text-muted-foreground mb-4 ${featured ? "line-clamp-3" : "line-clamp-2"}`} data-testid={`text-blog-excerpt-${id}`}>
+          <p
+            className={`text-muted-foreground mb-4 ${featured ? "line-clamp-3" : "line-clamp-2"}`}
+            style={{ display: '-webkit-box', WebkitLineClamp: featured ? 3 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+            data-testid={`text-blog-excerpt-${id}`}
+          >
             {excerpt}
           </p>
 
