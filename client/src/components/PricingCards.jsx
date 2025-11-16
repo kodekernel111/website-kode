@@ -64,7 +64,7 @@ export default function PricingCards() {
           <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-pricing-title">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-pricing-subtitle">
+          <p className="text-sm text-muted-foreground max-w-3xl mx-auto" data-testid="text-pricing-subtitle">
             Choose the plan that fits your needs. All plans include our premium support and quality guarantee.
           </p>
         </div>

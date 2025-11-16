@@ -2,6 +2,7 @@ import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
 import ServicesGrid from "@/components/ServicesGrid";
 import PortfolioShowcase from "@/components/PortfolioShowcase";
+import FAQSection from "@/components/FAQSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
@@ -24,6 +25,9 @@ export default function Home() {
       </AnimatedSection>
       <AnimatedSection>
         <CTASection />
+      </AnimatedSection>
+      <AnimatedSection>
+        <FAQSection />
       </AnimatedSection>
       <Footer />
       <Chatbot />

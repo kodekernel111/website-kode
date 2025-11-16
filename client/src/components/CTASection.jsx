@@ -10,10 +10,11 @@ export default function CTASection() {
         <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-cta-title">
           Ready to Start Your Project?
         </h2>
-        <p className="text-lg text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed" data-testid="text-cta-subtitle">
+  <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8" data-testid="text-cta-subtitle">
           Let's collaborate to bring your vision to life. Our team is ready to help you 
           build exceptional digital experiences that drive results.
         </p>
+        <div className="h-px w-48 mx-auto mt-8 mb-12 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link href="/contact">
             <motion.div

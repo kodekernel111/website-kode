@@ -59,7 +59,7 @@ export default function Services() {
             <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-services-page-title">
               Our Services
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-services-page-subtitle">
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-services-page-subtitle">
               Comprehensive digital solutions tailored to your business needs. 
               From strategy to execution, we've got you covered.
             </p>
@@ -97,7 +97,7 @@ export default function Services() {
                       <h2 className="text-3xl font-bold mb-4" data-testid={`text-service-detail-title-${index}`}>
                         {service.title}
                       </h2>
-                      <p className="text-muted-foreground leading-relaxed mb-6" data-testid={`text-service-detail-description-${index}`}>
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-6" data-testid={`text-service-detail-description-${index}`}>
                         {service.description}
                       </p>
                     </div>
@@ -130,7 +130,7 @@ export default function Services() {
                   <h3 className="text-xl font-bold mb-2" data-testid="text-guarantee-title">
                     Our Quality Guarantee
                   </h3>
-                  <p className="text-muted-foreground leading-relaxed" data-testid="text-guarantee-content">
+                  <p className="text-xs text-muted-foreground leading-relaxed" data-testid="text-guarantee-content">
                     Every project comes with our comprehensive quality guarantee. We offer ongoing support,
                     performance monitoring, and regular updates to ensure your digital products continue to
                     deliver exceptional results. Your satisfaction is our top priority.

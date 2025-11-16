@@ -16,7 +16,7 @@ export default function Testimonials() {
             <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-testimonials-page-title">
               Client Testimonials
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-testimonials-page-subtitle">
+            <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-testimonials-page-subtitle">
               Hear from our satisfied clients about their experience working with Kodekernel. 
               Their success stories inspire us to deliver exceptional results every day.
             </p>

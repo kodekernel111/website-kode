@@ -32,7 +32,7 @@ export default function ContactForm() {
     if (loading) return;
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/api/sendData", {
+      const response = await fetch("https://ihvyaao9x5.execute-api.eu-north-1.amazonaws.com/contact-form-mail", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -53,15 +53,25 @@ export default function ContactForm() {
   };
 
   return (
+  <>
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <svg className="animate-spin h-12 w-12 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+        </div>
+      )}
   <section className="pt-12 lg:pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
   <AnimatedSection animation="fadeIn" className="text-center mb-8">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6" data-testid="text-contact-title">
             Get In Touch
           </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto" data-testid="text-contact-subtitle">
+          <p className="text-sm text-muted-foreground max-w-3xl mx-auto mb-8" data-testid="text-contact-subtitle">
             Ready to start your project? Contact us today and let's build something amazing together.
           </p>
+          <div className="h-px w-48 mx-auto mt-8 mb-12 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
         </AnimatedSection>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -82,7 +92,7 @@ export default function ContactForm() {
                     data-testid="input-name"
                     className="peer w-full p-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-transparent focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_12px_rgba(99,102,241,0.12)] transition-all duration-300"
                   />
-                  <label htmlFor="name" className={`absolute left-4 top-3 text-gray-400 pointer-events-none transition-all duration-200 ${formData.name ? '-translate-y-5 text-xs text-indigo-300' : 'peer-focus:-translate-y-5 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
+                  <label htmlFor="name" className={`absolute left-4 ${formData.name ? 'top-0' : 'top-3'} bg-[#181824] px-1 text-gray-400 pointer-events-none transition-all duration-200 ${formData.name ? '-translate-y-1/2 text-xs text-indigo-300' : 'peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-indigo-300'}`}> 
                     Name
                   </label>
                 </div>
@@ -99,30 +109,32 @@ export default function ContactForm() {
                     data-testid="input-email"
                     className="peer w-full p-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-transparent focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_12px_rgba(99,102,241,0.12)] transition-all duration-300"
                   />
-                  <label htmlFor="email" className={`absolute left-4 top-3 text-gray-400 pointer-events-none transition-all duration-200 ${formData.email ? '-translate-y-5 text-xs text-indigo-300' : 'peer-focus:-translate-y-5 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
+                  <label htmlFor="email" className={`absolute left-4 ${formData.email ? 'top-0' : 'top-3'} bg-[#181824] px-1 text-gray-400 pointer-events-none transition-all duration-200 ${formData.email ? '-translate-y-1/2 text-xs text-indigo-300' : 'peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
                     Email
                   </label>
                 </div>
 
                 {/* Service select (keeps UI Select) */}
                 <div>
-                  <Label htmlFor="service">Service Interest</Label>
-                  <Select
-                    value={formData.service}
-                    onValueChange={(value) => setFormData({ ...formData, service: value })}
-                  >
-                    <SelectTrigger data-testid="select-service" className="border border-gray-700 bg-transparent text-gray-200">
-                      <SelectValue placeholder="Select a service" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="web-development">Web Development</SelectItem>
-                      <SelectItem value="ui-ux-design">UI/UX Design</SelectItem>
-                      <SelectItem value="mobile-apps">Mobile Apps</SelectItem>
-                      <SelectItem value="saas-solutions">SaaS Solutions</SelectItem>
-                      <SelectItem value="seo">SEO Optimization</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="service" className="mb-2 inline-block">Service Interest</Label>
+                  <div className="mt-2">
+                    <Select
+                      value={formData.service}
+                      onValueChange={(value) => setFormData({ ...formData, service: value })}
+                    >
+                      <SelectTrigger data-testid="select-service" className="border border-gray-700 bg-transparent text-gray-200">
+                        <SelectValue placeholder="Select a service" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="web-development">Web Development</SelectItem>
+                        <SelectItem value="ui-ux-design">UI/UX Design</SelectItem>
+                        <SelectItem value="mobile-apps">Mobile Apps</SelectItem>
+                        <SelectItem value="saas-solutions">SaaS Solutions</SelectItem>
+                        <SelectItem value="seo">SEO Optimization</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Message - floating label textarea */}
@@ -137,7 +149,7 @@ export default function ContactForm() {
                     data-testid="textarea-message"
                     className="peer w-full p-3 bg-transparent border border-gray-700 rounded-xl text-white placeholder-transparent focus:outline-none focus:border-indigo-400 focus:shadow-[0_0_12px_rgba(99,102,241,0.12)] transition-all duration-300 resize-none"
                   />
-                  <label htmlFor="message" className={`absolute left-4 top-3 text-gray-400 pointer-events-none transition-all duration-200 ${formData.message ? '-translate-y-5 text-xs text-indigo-300' : 'peer-focus:-translate-y-5 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
+                  <label htmlFor="message" className={`absolute left-4 ${formData.message ? 'top-0' : 'top-3'} bg-[#181824] px-1 text-gray-400 pointer-events-none transition-all duration-200 ${formData.message ? '-translate-y-1/2 text-xs text-indigo-300' : 'peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-indigo-300'}`}>
                     Message
                   </label>
                 </div>
@@ -170,14 +182,14 @@ export default function ContactForm() {
                   <div>
                     <h3 className="font-semibold mb-1" data-testid="text-email-label">Email</h3>
                     <p className="text-sm text-muted-foreground" data-testid="text-email-value">
-                      hello@kodekernel.com
+                      contact@kodekernel.com
                     </p>
                   </div>
                 </div>
               </Card>
             </motion.div>
 
-            <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }} className="group">
+            <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }} className="group hidden">
               <Card className="glow-border p-6 bg-[#0f0f16] border border-gray-800 shadow-sm hover:shadow-lg transition relative overflow-hidden rounded-xl">
                 <div className="glow-inner" />
                 <div className="flex items-start gap-4">
@@ -204,8 +216,7 @@ export default function ContactForm() {
                   <div>
                     <h3 className="font-semibold mb-1" data-testid="text-address-label">Office</h3>
                     <p className="text-sm text-muted-foreground" data-testid="text-address-value">
-                      123 Tech Street<br />
-                      San Francisco, CA 94105
+                      Bengaluru, India
                     </p>
                   </div>
                 </div>
@@ -215,5 +226,6 @@ export default function ContactForm() {
         </div>
       </div>
     </section>
+    </>
   );
 }

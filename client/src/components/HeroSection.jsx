@@ -59,7 +59,7 @@ export default function HeroSection() {
       >
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
           <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          <span className="text-sm font-medium" data-testid="text-badge">Trusted by 50+ Businesses Worldwide</span>
+          <span className="text-sm font-medium" data-testid="text-badge">Trusted by Businesses Worldwide</span>
         </div>
 
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-tight" data-testid="text-hero-title">
@@ -70,7 +70,7 @@ export default function HeroSection() {
           </span>
         </h1>
 
-        <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed" data-testid="text-hero-subtitle">
+  <p className="text-xs md:text-sm text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed" data-testid="text-hero-subtitle">
           Kodekernel delivers cutting-edge web design and development solutions 
           that drive results. Partner with us to build exceptional digital experiences.
         </p>
@@ -100,7 +100,7 @@ export default function HeroSection() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="glow-border rounded-full"
+              className="glow-border rounded-full"s
             >
               <Button size="lg" variant="outline" className="gap-2 rounded-full px-8 backdrop-blur relative group" data-testid="button-view-work">
                 <motion.span
@@ -120,8 +120,8 @@ export default function HeroSection() {
 
         <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
           {[
-            { value: "50+", label: "Happy Clients" },
-            { value: "200+", label: "Projects Completed" },
+            { value: "10+", label: "Happy Clients" },
+            { value: "20+", label: "Projects Completed" },
             { value: "99%", label: "Client Satisfaction" },
             { value: "24/7", label: "Support Available" },
           ].map((stat, index) => (
