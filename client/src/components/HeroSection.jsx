@@ -21,26 +21,26 @@ export default function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-      
+
       <div className="absolute inset-0 overflow-hidden">
         {/* 3D scene mounted behind hero content */}
         <div className="absolute inset-0 -z-0 pointer-events-none">
           <ThreeScene className="w-full h-full" />
         </div>
-        <div 
+        <div
           className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"
           style={{ transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0005})` }}
         />
-        <div 
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" 
-          style={{ 
+        <div
+          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse"
+          style={{
             animationDelay: '1s',
             transform: `translateY(${scrollY * -0.2}px) scale(${1 + scrollY * 0.0003})`
-          }} 
+          }}
         />
-        <div 
+        <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl animate-pulse"
-          style={{ 
+          style={{
             animationDelay: '2s',
             transform: `translate(-50%, -50%) rotate(${scrollY * 0.1}deg)`
           }}
@@ -70,8 +70,8 @@ export default function HeroSection() {
           </span>
         </h1>
 
-  <p className="text-xs md:text-sm text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed" data-testid="text-hero-subtitle">
-          Kodekernel delivers cutting-edge web design and development solutions 
+        <p className="text-xs md:text-sm text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed" data-testid="text-hero-subtitle">
+          Kodekernel delivers cutting-edge web design and development solutions
           that drive results. Partner with us to build exceptional digital experiences.
         </p>
 
@@ -100,7 +100,7 @@ export default function HeroSection() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="glow-border rounded-full"s
+              className="glow-border rounded-full" s
             >
               <Button size="lg" variant="outline" className="gap-2 rounded-full px-8 backdrop-blur relative group" data-testid="button-view-work">
                 <motion.span

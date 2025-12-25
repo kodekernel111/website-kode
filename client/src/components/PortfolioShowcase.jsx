@@ -3,12 +3,12 @@ import { motion } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import ecommerceImage from '@assets/generated_images/E-commerce_website_homepage_a23a291a.png';
-import saasImage from '@assets/generated_images/SaaS_landing_page_92a46d2f.png';
-import portfolioImage from '@assets/generated_images/Portfolio_website_homepage_a3cf9c70.png';
-import fintechImage from '@assets/generated_images/Fintech_dashboard_interface_e4b3828c.png';
-import restaurantImage from '@assets/generated_images/Restaurant_website_homepage_b80468f7.png';
-import techStartupImage from '@assets/generated_images/Tech_startup_landing_page_ae982cab.png';
+const ecommerceImage = "/generated_images/E-commerce_website_homepage_a23a291a.png";
+const saasImage = "/generated_images/SaaS_landing_page_92a46d2f.png";
+const portfolioImage = "/generated_images/Portfolio_website_homepage_a3cf9c70.png";
+const fintechImage = "/generated_images/Fintech_dashboard_interface_e4b3828c.png";
+const restaurantImage = "/generated_images/Restaurant_website_homepage_b80468f7.png";
+const techStartupImage = "/generated_images/Tech_startup_landing_page_ae982cab.png";
 
 const projects = [
   {

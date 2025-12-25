@@ -32,7 +32,7 @@ export default function ContactForm() {
     if (loading) return;
     setLoading(true);
     try {
-      const response = await fetch("https://ihvyaao9x5.execute-api.eu-north-1.amazonaws.com/contact-form-mail", {
+      const response = await fetch("https://ihvyaao9x5.execute-api.eu-north-1.amazonaws.com/prod/contact-form-mail", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

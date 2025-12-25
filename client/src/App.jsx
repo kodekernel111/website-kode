@@ -14,10 +14,16 @@ import BlogPost from "@/pages/BlogPost";
 import Testimonials from "@/pages/Testimonials";
 import Contact from "@/pages/Contact";
 import Donate from "@/pages/Donate";
+import Login from "@/pages/Login";
+import Signup from "@/pages/Signup";
+import Logout from "@/pages/Logout";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
-import Lenis from "lenis";
+import Navigation from "@/components/Navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Profile from "@/pages/Profile";
+import WriteBlog from "@/pages/WriteBlog";
+import EditorComparison from "@/pages/EditorComparison";
 
 function Router() {
   const [location] = useLocation();
@@ -41,6 +47,12 @@ function Router() {
           <Route path="/testimonials" component={Testimonials} />
           <Route path="/contact" component={Contact} />
           <Route path="/donate" component={Donate} />
+          <Route path="/login" component={Login} />
+          <Route path="/signup" component={Signup} />
+          <Route path="/logout" component={Logout} />
+          <Route path="/profile" component={Profile} />
+          <Route path="/write" component={WriteBlog} />
+          <Route path="/editor-comparison" component={EditorComparison} />
           <Route path="/privacypolicy" component={PrivacyPolicy} />
           <Route path="/termsofservice" component={TermsOfService} />
           <Route component={NotFound} />
@@ -50,8 +62,15 @@ function Router() {
   );
 }
 
+import Lenis from "lenis";
+
 function App() {
+  const [location] = useLocation();
+
   useEffect(() => {
+    // Disable Lenis on Signup page to avoid Radix UI Select conflict
+    if (location === "/signup") return;
+
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -69,11 +88,12 @@ function App() {
     return () => {
       lenis.destroy();
     };
-  }, []);
+  }, [location]);
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <Navigation />
         <Toaster />
         <Router />
       </TooltipProvider>

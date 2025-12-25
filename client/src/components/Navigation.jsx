@@ -1,11 +1,28 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, Code2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Menu, X, User } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../store/authSlice";
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setMobileMenuOpen(false);
+    setLocation("/login");
+  };
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -22,11 +39,11 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3 hover-elevate active-elevate-2 px-2 py-1 rounded-md -ml-2 no-underline">
-            <img 
-              src="/company-logo.png" 
-              alt="Kodekernel" 
-              className="w-16 h-16 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] drop-shadow-[0_0_25px_rgba(56,189,248,0.25)] hover:drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:drop-shadow-[0_0_35px_rgba(56,189,248,0.4)] transition-all duration-300" 
-              data-testid="logo-icon" 
+            <img
+              src="/company-logo.png"
+              alt="Kodekernel"
+              className="w-16 h-16 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] drop-shadow-[0_0_25px_rgba(56,189,248,0.25)] hover:drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:drop-shadow-[0_0_35px_rgba(56,189,248,0.4)] transition-all duration-300"
+              data-testid="logo-icon"
             />
             <span className="text-xl font-bold tracking-tight text-white no-underline" style={{ textDecoration: 'none' }} data-testid="text-brand">Kodekernel</span>
           </Link>
@@ -64,6 +81,36 @@ export default function Navigation() {
                 Get in Touch
               </Button>
             </Link>
+
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:text-white/80 rounded-full ml-2" title="Account">
+                  <User className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {isAuthenticated ? (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="cursor-pointer no-underline w-full block text-white">Profile Page</Link>
+                    </DropdownMenuItem>
+                    {user?.role === 'WRITER' && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/write" className="cursor-pointer no-underline w-full block text-white">Write a Blog</Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500 w-full block">
+                      Logout
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link href="/login" className="cursor-pointer no-underline w-full block">Login</Link>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <Button
@@ -110,6 +157,35 @@ export default function Navigation() {
                   Get in Touch
                 </Button>
               </Link>
+
+              <div className="border-t border-white/10 mt-4 pt-4">
+                {isAuthenticated ? (
+                  <>
+                    <Link href="/profile">
+                      <Button className="w-full justify-start text-white" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                        Profile
+                      </Button>
+                    </Link>
+                    {user?.role === 'WRITER' && (
+                      <Link href="/write">
+                        <Button className="w-full justify-start text-white" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                          Write a Blog
+                        </Button>
+                      </Link>
+                    )}
+                    <Button className="w-full justify-start text-red-300 hover:text-red-200 hover:bg-red-500/10" variant="ghost" onClick={handleLogout}>
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <Link href="/login">
+                    <Button className="w-full justify-start text-white" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                      Login
+                    </Button>
+                  </Link>
+                )}
+              </div>
+
             </div>
           </div>
         )}
