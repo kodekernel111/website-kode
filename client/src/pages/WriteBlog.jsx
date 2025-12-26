@@ -14,7 +14,7 @@ import ImageUploadModal from "@/components/ImageUploadModal";
 import {
     Save, Eye, FileText, Image as ImageIcon, Tag, Settings,
     Bold, Italic, Heading1, Heading2, List, ListOrdered,
-    Link as LinkIcon, Code, Quote, Columns, Maximize2, Edit3
+    Link as LinkIcon, Code, Quote, Columns, Maximize2, Edit3, Upload
 } from "lucide-react";
 
 const EDITOR_MODES = {
@@ -46,10 +46,18 @@ export default function WriteBlog() {
     const [_, setLocation] = useLocation();
     const { toast } = useToast();
 
+    // Check if we're in edit mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const editId = urlParams.get('edit');
+    const isEditMode = !!editId;
+
     const [editorMode, setEditorMode] = useState(EDITOR_MODES.TOOLBAR.id);
     const [showModeSelector, setShowModeSelector] = useState(false);
     const [preview, setPreview] = useState(false);
     const [showImageModal, setShowImageModal] = useState(false);
+    const [uploadTarget, setUploadTarget] = useState('content'); // 'content' or 'cover'
+    const [cursorPosition, setCursorPosition] = useState(0); // Track cursor position for WYSIWYG
+    const [loading, setLoading] = useState(isEditMode); // Loading state for fetching blog data
 
     const [formData, setFormData] = useState({
         title: "",
@@ -68,13 +76,14 @@ export default function WriteBlog() {
             return;
         }
 
-        if (user?.role !== "WRITER") {
+        if (user?.role !== "WRITER" && user?.role !== "ADMIN") {
             toast({
                 title: "Access Denied",
                 description: "You need writer privileges to access this page.",
                 variant: "destructive",
             });
             setLocation("/");
+            return;
         }
 
         // Load saved editor preference
@@ -82,7 +91,53 @@ export default function WriteBlog() {
         if (savedMode && EDITOR_MODES[savedMode.toUpperCase()]) {
             setEditorMode(savedMode);
         }
-    }, [isAuthenticated, user, setLocation, toast]);
+
+        // Fetch blog data if in edit mode
+        if (isEditMode && editId) {
+            fetchBlogForEdit(editId);
+        }
+    }, [isAuthenticated, user, setLocation, toast, isEditMode, editId]);
+
+    const fetchBlogForEdit = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/blogs/${id}/edit`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch blog post for editing");
+            }
+
+            const data = await response.json();
+
+            // Populate form with existing data
+            setFormData({
+                title: data.title || "",
+                content: data.content || "",
+                excerpt: data.excerpt || "",
+                coverImage: data.coverImage || "",
+                tags: data.tags ? data.tags.join(", ") : "",
+                published: data.published || false,
+            });
+
+            toast({
+                title: "Blog Loaded",
+                description: "You can now edit your blog post.",
+            });
+        } catch (error) {
+            console.error("Error fetching blog:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load blog post for editing.",
+                variant: "destructive",
+            });
+            setLocation("/write");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleEditorModeChange = (mode) => {
         setEditorMode(mode);
@@ -160,20 +215,57 @@ export default function WriteBlog() {
     };
 
     const handleImageInsert = (markdown) => {
-        const textarea = document.getElementById("content-textarea");
-        if (!textarea) {
-            setFormData(prev => ({ ...prev, content: prev.content + "\n" + markdown }));
+        if (uploadTarget === 'cover') {
+            // Extract URL from markdown: ![alt](url)
+            const urlMatch = markdown.match(/\!\[.*?\]\((.+?)\)/);
+            if (urlMatch && urlMatch[1]) {
+                setFormData(prev => ({ ...prev, coverImage: urlMatch[1] }));
+                toast({
+                    title: "Cover Image Set",
+                    description: "Cover image has been uploaded and set.",
+                });
+            }
+            setUploadTarget('content'); // Reset to content
             return;
         }
 
-        const start = textarea.selectionStart;
-        const newContent = formData.content.substring(0, start) + markdown + formData.content.substring(start);
-        setFormData(prev => ({ ...prev, content: newContent }));
+        // Insert into content
+        const textarea = document.getElementById("content-textarea");
 
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + markdown.length, start + markdown.length);
-        }, 0);
+        if (textarea) {
+            // For Toolbar and Split modes (has textarea)
+            const start = textarea.selectionStart;
+            const newContent = formData.content.substring(0, start) + markdown + formData.content.substring(start);
+            setFormData(prev => ({ ...prev, content: newContent }));
+
+            setTimeout(() => {
+                textarea.focus();
+                textarea.setSelectionRange(start + markdown.length, start + markdown.length);
+            }, 0);
+        } else {
+            // For WYSIWYG mode (uses MDEditor)
+            // Get cursor position from the MDEditor's textarea
+            const mdEditorTextarea = document.querySelector('.w-md-editor-text-input');
+            let insertPosition = cursorPosition;
+
+            if (mdEditorTextarea) {
+                insertPosition = mdEditorTextarea.selectionStart || cursorPosition;
+            }
+
+            // Insert at cursor position
+            const newContent = formData.content.substring(0, insertPosition) +
+                '\n' + markdown + '\n' +
+                formData.content.substring(insertPosition);
+            setFormData(prev => ({ ...prev, content: newContent }));
+
+            // Update cursor position
+            setCursorPosition(insertPosition + markdown.length + 2);
+
+            toast({
+                title: "Image Inserted",
+                description: "Image has been added at cursor position.",
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -181,8 +273,14 @@ export default function WriteBlog() {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch("/api/blogs", {
-                method: "POST",
+            const url = isEditMode
+                ? `http://localhost:8080/api/blogs/${editId}`
+                : "http://localhost:8080/api/blogs";
+
+            const method = isEditMode ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method,
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
@@ -195,30 +293,34 @@ export default function WriteBlog() {
             });
 
             if (!response.ok) {
-                throw new Error("Failed to create blog post");
+                const errorText = await response.text();
+                throw new Error(errorText || `Failed to ${isEditMode ? 'update' : 'create'} blog post`);
             }
 
             const data = await response.json();
 
             toast({
                 title: "Success!",
-                description: "Your blog post has been created successfully.",
+                description: `Your blog post has been ${isEditMode ? 'updated' : 'created'} successfully.`,
             });
 
-            setFormData({
-                title: "",
-                content: "",
-                excerpt: "",
-                coverImage: "",
-                tags: "",
-                published: false,
-            });
+            if (!isEditMode) {
+                // Reset form only for new posts
+                setFormData({
+                    title: "",
+                    content: "",
+                    excerpt: "",
+                    coverImage: "",
+                    tags: "",
+                    published: false,
+                });
+            }
 
             setLocation(`/blog/${data.id}`);
         } catch (error) {
             toast({
                 title: "Error",
-                description: error.message || "Failed to create blog post",
+                description: error.message || `Failed to ${isEditMode ? 'update' : 'create'} blog post`,
                 variant: "destructive",
             });
         } finally {
@@ -244,6 +346,23 @@ export default function WriteBlog() {
             case EDITOR_MODES.TOOLBAR.id:
                 return (
                     <div className="space-y-3">
+                        {/* Upload Image Button for Toolbar Mode */}
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setUploadTarget('content');
+                                    setShowImageModal(true);
+                                }}
+                                className="border-primary/20 hover:bg-primary/10 hover:text-primary gap-2"
+                            >
+                                <ImageIcon className="w-4 h-4" />
+                                Upload Image
+                            </Button>
+                        </div>
+
                         {/* Markdown Toolbar */}
                         <div className="flex flex-wrap gap-1 p-2 bg-background/60 rounded-lg border border-border/50">
                             {toolbarButtons.map((btn) => (
@@ -274,43 +393,62 @@ export default function WriteBlog() {
                         />
                         <p className="text-xs text-muted-foreground flex items-center gap-2">
                             <Code className="w-3 h-3" />
-                            Markdown formatting supported. Use toolbar buttons or type syntax directly.
+                            Markdown formatting supported. Use toolbar buttons or type syntax directly. Click "Upload Image" above to insert images.
                         </p>
                     </div>
                 );
 
             case EDITOR_MODES.SPLIT.id:
                 return (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label className="text-white font-semibold text-sm flex items-center gap-2">
-                                <Edit3 className="w-4 h-4" />
-                                Editor
-                            </Label>
-                            <Textarea
-                                id="content-textarea"
-                                name="content"
-                                value={formData.content}
-                                onChange={handleChange}
-                                placeholder="# Your Blog Title
+                    <div className="space-y-3">
+                        {/* Upload Image Button for Split Mode */}
+                        <div className="flex justify-end">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setUploadTarget('content');
+                                    setShowImageModal(true);
+                                }}
+                                className="border-primary/20 hover:bg-primary/10 hover:text-primary gap-2"
+                            >
+                                <ImageIcon className="w-4 h-4" />
+                                Upload Image
+                            </Button>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label className="text-white font-semibold text-sm flex items-center gap-2">
+                                    <Edit3 className="w-4 h-4" />
+                                    Editor
+                                </Label>
+                                <Textarea
+                                    id="content-textarea"
+                                    name="content"
+                                    value={formData.content}
+                                    onChange={handleChange}
+                                    placeholder="# Your Blog Title
 
 Write your content here...
 
 **Bold** and *italic* text
 - Bullet points
 1. Numbered lists"
-                                required
-                                rows={18}
-                                className="bg-background/60 border-border/50 text-white placeholder:text-muted-foreground focus:border-primary/50 resize-y font-mono text-sm"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label className="text-white font-semibold text-sm flex items-center gap-2">
-                                <Eye className="w-4 h-4" />
-                                Live Preview
-                            </Label>
-                            <div className="p-4 bg-background/60 rounded-lg border border-border/50 h-[432px] overflow-y-auto prose prose-invert prose-sm max-w-none">
-                                <ReactMarkdown>{formData.content || "*Start typing to see preview...*"}</ReactMarkdown>
+                                    required
+                                    rows={18}
+                                    className="bg-background/60 border-border/50 text-white placeholder:text-muted-foreground focus:border-primary/50 resize-y font-mono text-sm"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-white font-semibold text-sm flex items-center gap-2">
+                                    <Eye className="w-4 h-4" />
+                                    Live Preview
+                                </Label>
+                                <div className="p-4 bg-background/60 rounded-lg border border-border/50 h-[432px] overflow-y-auto prose prose-invert prose-sm max-w-none">
+                                    <ReactMarkdown>{formData.content || "*Start typing to see preview...*"}</ReactMarkdown>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -325,7 +463,10 @@ Write your content here...
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setShowImageModal(true)}
+                                onClick={() => {
+                                    setUploadTarget('content');
+                                    setShowImageModal(true);
+                                }}
                                 className="border-primary/20 hover:bg-primary/10 hover:text-primary gap-2"
                             >
                                 <ImageIcon className="w-4 h-4" />
@@ -523,17 +664,34 @@ Write your content here...
                                     <div className="space-y-2">
                                         <Label htmlFor="coverImage" className="text-white font-semibold flex items-center gap-2">
                                             <ImageIcon className="w-4 h-4" />
-                                            Cover Image URL
+                                            Cover Image
                                         </Label>
-                                        <Input
-                                            id="coverImage"
-                                            name="coverImage"
-                                            value={formData.coverImage}
-                                            onChange={handleChange}
-                                            placeholder="https://example.com/image.jpg (Optional)"
-                                            type="url"
-                                            className="bg-background/60 border-border/50 text-white placeholder:text-muted-foreground focus:border-primary/50"
-                                        />
+                                        <div className="flex gap-2">
+                                            <Input
+                                                id="coverImage"
+                                                name="coverImage"
+                                                value={formData.coverImage}
+                                                onChange={handleChange}
+                                                placeholder="https://example.com/image.jpg or upload below"
+                                                type="url"
+                                                className="bg-background/60 border-border/50 text-white placeholder:text-muted-foreground focus:border-primary/50 flex-1"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    setUploadTarget('cover');
+                                                    setShowImageModal(true);
+                                                }}
+                                                className="border-primary/20 hover:bg-primary/10 hover:text-primary gap-2 whitespace-nowrap"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                Upload
+                                            </Button>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">
+                                            Paste a URL or click Upload to select from your computer
+                                        </p>
                                     </div>
 
                                     {/* Content Editor */}
@@ -584,11 +742,16 @@ Write your content here...
                                     <div className="flex gap-3 pt-4 border-t border-border/50">
                                         <Button
                                             type="submit"
-                                            disabled={isSubmitting}
+                                            disabled={isSubmitting || loading}
                                             className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-accent hover:to-primary transition-all duration-300 h-11"
                                         >
                                             <Save className="w-4 h-4 mr-2" />
-                                            {isSubmitting ? "Publishing..." : formData.published ? "Publish Post" : "Save Draft"}
+                                            {isSubmitting
+                                                ? (isEditMode ? "Updating..." : "Publishing...")
+                                                : isEditMode
+                                                    ? "Update Post"
+                                                    : (formData.published ? "Publish Post" : "Save Draft")
+                                            }
                                         </Button>
                                         <Button
                                             type="button"

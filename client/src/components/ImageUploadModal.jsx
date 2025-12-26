@@ -56,7 +56,7 @@ export default function ImageUploadModal({ isOpen, onClose, onInsert, token }) {
             const formData = new FormData();
             formData.append('image', file);
 
-            const response = await fetch('/api/upload/image', {
+            const response = await fetch('http://localhost:8080/api/upload/image', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -65,7 +65,8 @@ export default function ImageUploadModal({ isOpen, onClose, onInsert, token }) {
             });
 
             if (!response.ok) {
-                throw new Error('Upload failed');
+                const errorText = await response.text();
+                throw new Error(errorText || 'Upload failed');
             }
 
             const data = await response.json();
@@ -73,9 +74,10 @@ export default function ImageUploadModal({ isOpen, onClose, onInsert, token }) {
 
             toast({
                 title: "Upload Successful",
-                description: "Image uploaded successfully",
+                description: `Image uploaded successfully (${(data.size / 1024).toFixed(2)} KB)`,
             });
         } catch (error) {
+            console.error('Upload error:', error);
             toast({
                 title: "Upload Failed",
                 description: error.message || "Failed to upload image. Please try again.",
