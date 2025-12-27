@@ -25,6 +25,8 @@ import Profile from "@/pages/Profile";
 import WriteBlog from "@/pages/WriteBlog";
 import EditorComparison from "@/pages/EditorComparison";
 
+import Controls from "@/pages/Controls";
+
 function Router() {
   const [location] = useLocation();
 
@@ -53,6 +55,7 @@ function Router() {
           <Route path="/profile" component={Profile} />
           <Route path="/write" component={WriteBlog} />
           <Route path="/editor-comparison" component={EditorComparison} />
+          <Route path="/controls" component={Controls} />
           <Route path="/privacypolicy" component={PrivacyPolicy} />
           <Route path="/termsofservice" component={TermsOfService} />
           <Route component={NotFound} />

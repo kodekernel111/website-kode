@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -10,58 +11,39 @@ import { Code, Palette, Smartphone, Rocket, Search, BarChart, CheckCircle2, Arro
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 
-const services = [
-  {
-    icon: Code,
-    title: "Web Development",
-    description: "We build fast, scalable, and secure web applications using cutting-edge technologies like React, Next.js, and Node.js.",
-    features: ["Custom Web Applications", "Progressive Web Apps", "API Development", "E-Commerce Solutions"],
-    gradient: "from-blue-500/20 to-cyan-500/20",
-    iconColor: "text-cyan-500"
-  },
-  {
-    icon: Palette,
-    title: "UI/UX Design",
-    description: "Our design team creates beautiful, intuitive interfaces that users love, focusing on user research and visual storytelling.",
-    features: ["User Research & Testing", "Wireframing & Prototyping", "Visual Design Systems", "Responsive Design"],
-    gradient: "from-purple-500/20 to-pink-500/20",
-    iconColor: "text-pink-500"
-  },
-  {
-    icon: Smartphone,
-    title: "Mobile Development",
-    description: "Native and cross-platform mobile applications that deliver seamless experiences on iOS and Android devices.",
-    features: ["iOS App Development", "Android App Development", "Cross-Platform Solutions", "App Store Optimization"],
-    gradient: "from-orange-500/20 to-red-500/20",
-    iconColor: "text-orange-500"
-  },
-  {
-    icon: Rocket,
-    title: "SaaS Solutions",
-    description: "End-to-end SaaS platform development with subscription management, analytics, and scalable architecture.",
-    features: ["Multi-Tenant Architecture", "Payment Integration", "User Management", "Analytics Dashboard"],
-    gradient: "from-green-500/20 to-emerald-500/20",
-    iconColor: "text-emerald-500"
-  },
-  {
-    icon: Search,
-    title: "SEO & Marketing",
-    description: "Comprehensive SEO strategies to improve your search rankings and drive organic traffic to your business.",
-    features: ["Technical SEO Audit", "Content Strategy", "Link Building", "Performance Monitoring"],
-    gradient: "from-yellow-500/20 to-amber-500/20",
-    iconColor: "text-yellow-500"
-  },
-  {
-    icon: BarChart,
-    title: "Analytics & Insights",
-    description: "Data-driven decision making with custom analytics solutions to track and optimize your digital presence.",
-    features: ["Custom Analytics", "Conversion Tracking", "A/B Testing", "Performance Reports"],
-    gradient: "from-indigo-500/20 to-violet-500/20",
-    iconColor: "text-indigo-500"
-  },
-];
+const iconMap = {
+  Code, Palette, Smartphone, Rocket, Search, BarChart
+};
 
 export default function Services() {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/services")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed");
+        return res.json();
+      })
+      .then(data => {
+        setServices(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch services", err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background relative selection:bg-primary/20">
+        <Navigation />
+        <div className="pt-32 text-center text-white">Loading services...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background relative selection:bg-primary/20">
       <Navigation />
@@ -86,55 +68,59 @@ export default function Services() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-24">
-            {services.map((service, index) => (
-              <AnimatedSection key={index} delay={index * 100}>
-                <div className="group h-full">
-                  <div className={`glow-border h-full relative overflow-hidden rounded-3xl bg-card border border-border/50 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:border-transparent`}>
-                    <div className="glow-inner" />
+            {services.map((service, index) => {
+              const IconComponent = iconMap[service.icon] || Code;
 
-                    {/* Hover Gradient Background */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+              return (
+                <AnimatedSection key={service.id || index} delay={index * 100}>
+                  <div className="group h-full">
+                    <div className={`glow-border h-full relative overflow-hidden rounded-3xl bg-card border border-border/50 transition-all duration-300 group-hover:-translate-y-2 group-hover:shadow-2xl group-hover:border-transparent`}>
+                      <div className="glow-inner" />
 
-                    <div className="relative p-8 flex flex-col h-full">
-                      {/* Icon */}
-                      <div className="mb-6 inline-flex items-center justify-center">
-                        <div className={`w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform duration-300`}>
-                          <service.icon className={`w-7 h-7 ${service.iconColor}`} />
-                        </div>
-                      </div>
+                      {/* Hover Gradient Background */}
+                      <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                      {/* Content */}
-                      <h2 className="text-2xl font-bold mb-3 group-hover:text-foreground transition-colors" data-testid={`text-service-title-${index}`}>
-                        {service.title}
-                      </h2>
-                      <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-grow">
-                        {service.description}
-                      </p>
-
-                      {/* Features */}
-                      <div className="space-y-3 mb-8">
-                        {service.features.map((feature, fIndex) => (
-                          <div key={fIndex} className="flex items-center gap-3 text-sm text-muted-foreground/80 group-hover:text-muted-foreground transition-colors">
-                            <CheckCircle2 className={`w-4 h-4 ${service.iconColor} opacity-70`} />
-                            <span>{feature}</span>
+                      <div className="relative p-8 flex flex-col h-full">
+                        {/* Icon */}
+                        <div className="mb-6 inline-flex items-center justify-center">
+                          <div className={`w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform duration-300`}>
+                            <IconComponent className={`w-7 h-7 ${service.iconColor}`} />
                           </div>
-                        ))}
-                      </div>
+                        </div>
 
-                      {/* Action */}
-                      <div className="pt-6 border-t border-border/10">
-                        <Link href="/contact">
-                          <Button variant="ghost" className="w-full justify-between group/btn hover:bg-white/5">
-                            <span className="font-medium">Get Started</span>
-                            <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
-                          </Button>
-                        </Link>
+                        {/* Content */}
+                        <h2 className="text-2xl font-bold mb-3 group-hover:text-foreground transition-colors" data-testid={`text-service-title-${index}`}>
+                          {service.title}
+                        </h2>
+                        <p className="text-sm text-muted-foreground leading-relaxed mb-8 flex-grow">
+                          {service.description}
+                        </p>
+
+                        {/* Features */}
+                        <div className="space-y-3 mb-8">
+                          {service.features && service.features.map((feature, fIndex) => (
+                            <div key={fIndex} className="flex items-center gap-3 text-sm text-muted-foreground/80 group-hover:text-muted-foreground transition-colors">
+                              <CheckCircle2 className={`w-4 h-4 ${service.iconColor} opacity-70`} />
+                              <span>{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Action */}
+                        <div className="pt-6 border-t border-border/10">
+                          <Link href="/contact">
+                            <Button variant="ghost" className="w-full justify-between group/btn hover:bg-white/5">
+                              <span className="font-medium">Get Started</span>
+                              <ArrowRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </AnimatedSection>
-            ))}
+                </AnimatedSection>
+              );
+            })}
           </div>
 
           {/* Guarantee Section */}

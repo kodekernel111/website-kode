@@ -498,7 +498,7 @@ Write your content here...
         }
     };
 
-    if (!isAuthenticated || user?.role !== "WRITER") {
+    if (!isAuthenticated || (user?.role !== "WRITER" && user?.role !== "ADMIN")) {
         return null;
     }
 

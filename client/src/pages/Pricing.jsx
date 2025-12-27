@@ -22,7 +22,7 @@ export default function Pricing() {
   return (
     <div className="min-h-screen">
       <Navigation />
-      
+
       <section className="pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -30,7 +30,7 @@ export default function Pricing() {
               Pricing Plans
             </h1>
             <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-pricing-page-subtitle">
-              Transparent pricing designed to fit your budget. All plans include our 
+              Transparent pricing designed to fit your budget. All plans include our
               premium support and satisfaction guarantee.
             </p>
             <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
@@ -44,22 +44,25 @@ export default function Pricing() {
 
       <AnimatedSection>
         <section className="py-20">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          <Card className="p-8">
-            <h2 className="text-2xl font-bold mb-6 text-center" data-testid="text-features-title">
-              All Plans Include
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {features.map((feature, index) => (
-                <div key={index} className="flex items-start gap-3" data-testid={`all-feature-${index}`}>
-                  <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <span>{feature}</span>
+          <div className="max-w-5xl mx-auto px-6 lg:px-8">
+            <Card className="p-8 relative overflow-hidden bg-card/50 backdrop-blur-sm border-primary/20 bg-gradient-to-br from-background via-card to-background">
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+              <div className="relative z-10">
+                <h2 className="text-2xl font-bold mb-6 text-center" data-testid="text-features-title">
+                  All Plans Include
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {features.map((feature, index) => (
+                    <div key={index} className="flex items-start gap-3" data-testid={`all-feature-${index}`}>
+                      <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </Card>
-        </div>
-      </section>
+              </div>
+            </Card>
+          </div>
+        </section>
       </AnimatedSection>
 
       <AnimatedSection>

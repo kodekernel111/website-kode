@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import Navigation from "@/components/Navigation";
@@ -7,13 +8,6 @@ import AnimatedSection from "@/components/AnimatedSection";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Target, Eye, Award, Users } from "lucide-react";
-
-const team = [
-  { name: "Alex Thompson", role: "CEO & Founder", initials: "AT" },
-  { name: "Sarah Chen", role: "Head of Design", initials: "SC" },
-  { name: "Michael Rodriguez", role: "Lead Developer", initials: "MR" },
-  { name: "Emily Parker", role: "Project Manager", initials: "EP" },
-];
 
 const values = [
   {
@@ -39,6 +33,18 @@ const values = [
 ];
 
 export default function About() {
+  const [team, setTeam] = useState([]);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/users/team")
+      .then(res => {
+        if (!res.ok) throw new Error("Failed");
+        return res.json();
+      })
+      .then(data => setTeam(data))
+      .catch(e => console.error("Failed to fetch team", e));
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-background selection:bg-primary/20">
       <Navigation />
@@ -167,47 +173,49 @@ export default function About() {
             </div>
           </div>
 
-          <div>
-            <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-5xl font-bold mb-4" data-testid="text-team-title">
-                Meet Our <span className="text-purple-500">Team</span>
-              </h2>
-              <div className="h-px w-48 mx-auto mt-6 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
-            </div>
+          {team.length > 0 && (
+            <div>
+              <div className="text-center mb-16">
+                <h2 className="text-3xl lg:text-5xl font-bold mb-4" data-testid="text-team-title">
+                  Meet Our <span className="text-purple-500">Team</span>
+                </h2>
+                <div className="h-px w-48 mx-auto mt-6 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {team.map((member, index) => (
-                <AnimatedSection key={index} delay={index * 100}>
-                  <Tilt
-                    tiltMaxAngleX={5}
-                    tiltMaxAngleY={5}
-                    glareEnable={true}
-                    glareMaxOpacity={0.05}
-                    scale={1.02}
-                    className="h-full"
-                  >
-                    <Card className="glow-border p-6 text-center relative overflow-hidden rounded-3xl border-border/50 bg-card/30 backdrop-blur-sm" data-testid={`card-team-${index}`}>
-                      <div className="glow-inner" />
-                      <div className="relative mx-auto mb-6 w-28 h-28">
-                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-purple-500 blur-sm opacity-50 group-hover:opacity-100 transition-opacity" />
-                        <Avatar className="w-28 h-28 relative border-4 border-background shadow-xl">
-                          <AvatarFallback className="bg-gradient-to-br from-card to-background text-2xl font-bold">
-                            {member.initials}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <h3 className="text-xl font-bold mb-1" data-testid={`text-team-name-${index}`}>
-                        {member.name}
-                      </h3>
-                      <p className="text-sm text-primary font-medium opacity-80" data-testid={`text-team-role-${index}`}>
-                        {member.role}
-                      </p>
-                    </Card>
-                  </Tilt>
-                </AnimatedSection>
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {team.map((member, index) => (
+                  <AnimatedSection key={member.id || index} delay={index * 100}>
+                    <Tilt
+                      tiltMaxAngleX={5}
+                      tiltMaxAngleY={5}
+                      glareEnable={true}
+                      glareMaxOpacity={0.05}
+                      scale={1.02}
+                      className="h-full"
+                    >
+                      <Card className="glow-border p-6 text-center relative overflow-hidden rounded-3xl border-border/50 bg-card/30 backdrop-blur-sm" data-testid={`card-team-${index}`}>
+                        <div className="glow-inner" />
+                        <div className="relative mx-auto mb-6 w-28 h-28">
+                          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-purple-500 blur-sm opacity-50 group-hover:opacity-100 transition-opacity" />
+                          <Avatar className="w-28 h-28 relative border-4 border-background shadow-xl">
+                            <AvatarFallback className="bg-gradient-to-br from-card to-background text-2xl font-bold">
+                              {member.firstName?.[0]}{member.lastName?.[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <h3 className="text-xl font-bold mb-1" data-testid={`text-team-name-${index}`}>
+                          {member.firstName} {member.lastName}
+                        </h3>
+                        <p className="text-sm text-primary font-medium opacity-80" data-testid={`text-team-role-${index}`}>
+                          {member.displayRole || member.role}
+                        </p>
+                      </Card>
+                    </Tilt>
+                  </AnimatedSection>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 

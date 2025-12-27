@@ -94,9 +94,14 @@ export default function Navigation() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="cursor-pointer no-underline w-full block text-white">Profile Page</Link>
                     </DropdownMenuItem>
-                    {user?.role === 'WRITER' && (
+                    {(user?.role === 'WRITER' || user?.role === 'ADMIN') && (
                       <DropdownMenuItem asChild>
                         <Link href="/write" className="cursor-pointer no-underline w-full block text-white">Write a Blog</Link>
+                      </DropdownMenuItem>
+                    )}
+                    {user?.role === 'ADMIN' && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/controls" className="cursor-pointer no-underline w-full block text-white">Controls</Link>
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
@@ -166,10 +171,17 @@ export default function Navigation() {
                         Profile
                       </Button>
                     </Link>
-                    {user?.role === 'WRITER' && (
+                    {(user?.role === 'WRITER' || user?.role === 'ADMIN') && (
                       <Link href="/write">
                         <Button className="w-full justify-start text-white" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
                           Write a Blog
+                        </Button>
+                      </Link>
+                    )}
+                    {user?.role === 'ADMIN' && (
+                      <Link href="/controls">
+                        <Button className="w-full justify-start text-white" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                          Controls
                         </Button>
                       </Link>
                     )}
