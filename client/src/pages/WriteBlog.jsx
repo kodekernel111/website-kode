@@ -51,6 +51,9 @@ export default function WriteBlog() {
     const editId = urlParams.get('edit');
     const isEditMode = !!editId;
 
+    // Authorization check helper
+    const isAuthorized = user?.roles?.includes("WRITER") || user?.role === "WRITER" || user?.roles?.includes("ADMIN") || user?.role === "ADMIN";
+
     const [editorMode, setEditorMode] = useState(EDITOR_MODES.TOOLBAR.id);
     const [showModeSelector, setShowModeSelector] = useState(false);
     const [preview, setPreview] = useState(false);
@@ -76,7 +79,7 @@ export default function WriteBlog() {
             return;
         }
 
-        if (user?.role !== "WRITER" && user?.role !== "ADMIN") {
+        if (!isAuthorized) {
             toast({
                 title: "Access Denied",
                 description: "You need writer privileges to access this page.",
@@ -96,7 +99,7 @@ export default function WriteBlog() {
         if (isEditMode && editId) {
             fetchBlogForEdit(editId);
         }
-    }, [isAuthenticated, user, setLocation, toast, isEditMode, editId]);
+    }, [isAuthenticated, user, setLocation, toast, isEditMode, editId, isAuthorized]);
 
     const fetchBlogForEdit = async (id) => {
         try {
@@ -498,7 +501,7 @@ Write your content here...
         }
     };
 
-    if (!isAuthenticated || (user?.role !== "WRITER" && user?.role !== "ADMIN")) {
+    if (!isAuthenticated || !isAuthorized) {
         return null;
     }
 

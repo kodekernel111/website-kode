@@ -32,10 +32,14 @@ export default function Controls() {
     const [_, setLocation] = useLocation();
     const { toast } = useToast();
 
+    // Authorization Helper
+    const isAdmin = user?.roles?.includes("ADMIN") || user?.role === "ADMIN";
+
     // Data States
     const [plans, setPlans] = useState([]);
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
+    const [availableRoles, setAvailableRoles] = useState([]);
 
     // User Management States
     const [teamMembers, setTeamMembers] = useState([]);
@@ -50,6 +54,7 @@ export default function Controls() {
     const [isServiceDialogOpen, setIsServiceDialogOpen] = useState(false);
     const [isTestimonialDialogOpen, setIsTestimonialDialogOpen] = useState(false);
     const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+    const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
 
     // Style Lock State for Service Dialog
     const [isStyleLocked, setIsStyleLocked] = useState(true);
@@ -66,14 +71,17 @@ export default function Controls() {
         name: "", role: "", content: "", rating: 5, displayOrder: 1
     });
     const [userForm, setUserForm] = useState({
-        role: "USER", displayRole: "", showOnTeam: false
+        roles: ["USER"], displayRole: "", showOnTeam: false
     });
+    const [newRoleName, setNewRoleName] = useState("");
 
     useEffect(() => {
-        if (!isAuthenticated || user?.role !== "ADMIN") return;
+        if (!isAuthenticated || !isAdmin) return;
         fetchData();
+        fetchRoles();
         fetchTeamMembers();
-    }, [isAuthenticated, user, token]);
+    }, [isAuthenticated, user, token, isAdmin]);
+
 
     // Live Search Effect
     useEffect(() => {
@@ -122,6 +130,15 @@ export default function Controls() {
             if (res.ok) setTeamMembers(await res.json());
         } catch (error) {
             console.error("Failed to fetch team", error);
+        }
+    };
+
+    const fetchRoles = async () => {
+        try {
+            const res = await fetch("http://localhost:8080/api/roles", { headers: { Authorization: `Bearer ${token}` } });
+            if (res.ok) setAvailableRoles(await res.json());
+        } catch (error) {
+            console.error("Failed to fetch roles", error);
         }
     };
 
@@ -178,7 +195,7 @@ export default function Controls() {
     // --- User Handlers ---
     const selectUserForEdit = (u) => {
         setEditingId(u.id);
-        setUserForm({ role: u.role, displayRole: u.displayRole || "", showOnTeam: u.showOnTeam });
+        setUserForm({ roles: u.roles || [], displayRole: u.displayRole || "", showOnTeam: u.showOnTeam });
         setSearchQuery("");
         setShowSuggestions(false);
         setIsUserDialogOpen(true);
@@ -188,6 +205,26 @@ export default function Controls() {
         e.preventDefault();
         await submitData("users", editingId, userForm, setIsUserDialogOpen);
         fetchTeamMembers();
+    };
+
+    const handleCreateRole = async (e) => {
+        e.preventDefault();
+        if (!newRoleName.trim()) return;
+
+        try {
+            const res = await fetch("http://localhost:8080/api/roles", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ name: newRoleName.toUpperCase().replace(/\s+/g, '_') }) // Store as uppercase enum-style
+            });
+            if (!res.ok) throw new Error("Failed to add role");
+            toast({ title: "Success", description: "Role added successfully" });
+            setNewRoleName("");
+            setIsRoleDialogOpen(false);
+            fetchRoles();
+        } catch (err) {
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        }
     };
 
     const submitData = async (endpoint, id, payload, setOpen) => {
@@ -213,7 +250,7 @@ export default function Controls() {
         } catch (err) { toast({ title: "Error", description: "Failed to delete", variant: "destructive" }); }
     };
 
-    if (!isAuthenticated || user?.role !== "ADMIN") return <div className="min-h-screen pt-32 text-center text-white"><Navigation /><h1>Access Denied</h1><Footer /></div>;
+    if (!isAuthenticated || !isAdmin) return <div className="min-h-screen pt-32 text-center text-white"><Navigation /><h1>Access Denied</h1><Footer /></div>;
 
     return (
         <div className="min-h-screen bg-background text-white">
@@ -281,7 +318,7 @@ export default function Controls() {
                                         </div>
                                         <div className="flex items-center gap-8">
                                             <div className="text-right">
-                                                <div className="text-sm font-medium text-white">{u.role}</div>
+                                                <div className="text-sm font-medium text-white">{u.roles?.join(", ")}</div>
                                                 {u.displayRole && <div className="text-xs text-muted-foreground">{u.displayRole}</div>}
                                             </div>
                                             <Button size="sm" variant="outline" onClick={() => selectUserForEdit(u)}><Edit2 className="w-4 h-4" /></Button>
@@ -460,15 +497,32 @@ export default function Controls() {
                     <DialogHeader><DialogTitle>Configure User</DialogTitle></DialogHeader>
                     <form onSubmit={handleUserSubmit} className="space-y-6">
                         <div className="grid gap-2">
-                            <Label>System Role</Label>
-                            <Select value={userForm.role} onValueChange={v => setUserForm({ ...userForm, role: v })}>
-                                <SelectTrigger className="bg-background/50 border-input"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="ADMIN">Admin</SelectItem>
-                                    <SelectItem value="WRITER">Writer</SelectItem>
-                                    <SelectItem value="USER">User</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Label className="flex justify-between items-center mb-1">
+                                System Roles
+                                <Button type="button" size="sm" variant="ghost" onClick={() => setIsRoleDialogOpen(true)} className="h-6 text-xs text-primary hover:text-primary">
+                                    + New Role
+                                </Button>
+                            </Label>
+                            <div className="grid grid-cols-2 gap-3 bg-background/20 p-4 rounded-lg border border-border/50">
+                                {availableRoles.map(r => (
+                                    <label key={r.id} className="flex items-center space-x-3 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={userForm.roles?.includes(r.name)}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                const currentRoles = userForm.roles || [];
+                                                let newRoles;
+                                                if (checked) newRoles = [...currentRoles, r.name];
+                                                else newRoles = currentRoles.filter(role => role !== r.name);
+                                                setUserForm({ ...userForm, roles: newRoles });
+                                            }}
+                                            className="w-4 h-4 rounded border-gray-500 bg-transparent text-primary focus:ring-primary"
+                                        />
+                                        <span className="text-sm text-foreground group-hover:text-primary transition-colors">{r.name}</span>
+                                    </label>
+                                ))}
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label>Team Page Display Role</Label>
@@ -482,6 +536,22 @@ export default function Controls() {
                             <Switch checked={userForm.showOnTeam} onCheckedChange={c => setUserForm({ ...userForm, showOnTeam: c })} />
                         </div>
                         <Button type="submit" className="w-full">Save Changes</Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Add Role Dialog */}
+            <Dialog open={isRoleDialogOpen} onOpenChange={setIsRoleDialogOpen}>
+                <DialogContent className="bg-card text-white border-border/50">
+                    <DialogHeader><DialogTitle>Add New Role</DialogTitle></DialogHeader>
+                    <form onSubmit={handleCreateRole} className="space-y-4">
+                        <Input
+                            value={newRoleName}
+                            onChange={e => setNewRoleName(e.target.value)}
+                            placeholder="Role Name (e.g. MANAGER)"
+                            className="bg-background/50 uppercase"
+                        />
+                        <Button type="submit" disabled={!newRoleName.trim()}>Add Role</Button>
                     </form>
                 </DialogContent>
             </Dialog>

@@ -18,6 +18,9 @@ export default function Navigation() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
+  const isAdmin = user?.roles?.includes('ADMIN') || user?.role === 'ADMIN';
+  const isWriter = user?.roles?.includes('WRITER') || user?.role === 'WRITER';
+
   const handleLogout = () => {
     dispatch(logout());
     setMobileMenuOpen(false);
@@ -94,12 +97,12 @@ export default function Navigation() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile" className="cursor-pointer no-underline w-full block text-white">Profile Page</Link>
                     </DropdownMenuItem>
-                    {(user?.role === 'WRITER' || user?.role === 'ADMIN') && (
+                    {(isWriter || isAdmin) && (
                       <DropdownMenuItem asChild>
                         <Link href="/write" className="cursor-pointer no-underline w-full block text-white">Write a Blog</Link>
                       </DropdownMenuItem>
                     )}
-                    {user?.role === 'ADMIN' && (
+                    {isAdmin && (
                       <DropdownMenuItem asChild>
                         <Link href="/controls" className="cursor-pointer no-underline w-full block text-white">Controls</Link>
                       </DropdownMenuItem>
@@ -171,14 +174,14 @@ export default function Navigation() {
                         Profile
                       </Button>
                     </Link>
-                    {(user?.role === 'WRITER' || user?.role === 'ADMIN') && (
+                    {(isWriter || isAdmin) && (
                       <Link href="/write">
                         <Button className="w-full justify-start text-white" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
                           Write a Blog
                         </Button>
                       </Link>
                     )}
-                    {user?.role === 'ADMIN' && (
+                    {isAdmin && (
                       <Link href="/controls">
                         <Button className="w-full justify-start text-white" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
                           Controls

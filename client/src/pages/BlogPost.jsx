@@ -423,13 +423,15 @@ export default function BlogPost() {
                   {/* Author Info */}
                   <div className="flex-1 space-y-4">
                     <div>
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent" data-testid="text-author-bio-name">
                           {post.authorName}
                         </h3>
-                        <Badge variant="outline" className="border-primary/30 text-primary">
-                          Writer
-                        </Badge>
+                        {(post.authorRoles || []).filter(r => r !== 'ADMIN').map(r => (
+                          <Badge key={r} variant="outline" className="border-primary/30 text-primary capitalize">
+                            {r.toLowerCase().replace(/_/g, ' ')}
+                          </Badge>
+                        ))}
                       </div>
                       <p className="text-muted-foreground flex items-center gap-2">
                         <span className="text-primary">✉</span>
@@ -438,8 +440,7 @@ export default function BlogPost() {
                     </div>
 
                     <p className="text-base leading-relaxed text-muted-foreground max-w-2xl" data-testid="text-author-bio">
-                      Passionate writer and developer at Kodekernel, sharing insights on modern web development,
-                      best practices, and cutting-edge technologies. Always learning, always building.
+                      {post.authorBio || "Passionate writer and developer at Kodekernel, sharing insights on modern web development, best practices, and cutting-edge technologies. Always learning, always building."}
                     </p>
 
                     {/* Author Stats */}
@@ -532,7 +533,7 @@ export default function BlogPost() {
             </div>
           </div>
 
-          <CommentSection postId={params.id} />
+          <CommentSection postId={params?.id} />
         </div>
       </article>
 

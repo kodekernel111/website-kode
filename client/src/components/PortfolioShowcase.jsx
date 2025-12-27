@@ -66,8 +66,8 @@ export default function PortfolioShowcase() {
     <section className="py-16 lg:py-28 bg-card">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500" data-testid="text-portfolio-title">
-            Our Portfolio
+          <h2 className="text-4xl lg:text-5xl font-bold mb-4" data-testid="text-portfolio-title">
+            Our <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-pink-500">Expertise</span>
           </h2>
           <p className="text-sm text-muted-foreground max-w-3xl mx-auto" data-testid="text-portfolio-subtitle">
             Explore our latest projects showcasing innovative design and cutting-edge technology.
