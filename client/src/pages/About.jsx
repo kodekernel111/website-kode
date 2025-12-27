@@ -40,50 +40,57 @@ const values = [
 
 export default function About() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative overflow-hidden bg-background selection:bg-primary/20">
       <Navigation />
-      
-      <section className="pt-32 pb-20 lg:pb-32">
+
+      {/* Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px] -translate-y-1/2" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[100px] translate-y-1/2" />
+      </div>
+
+      <section className="pt-32 pb-20 lg:pb-32 relative">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-about-title">
-              About Kodekernel
+          <div className="text-center mb-20">
+            <h1 className="text-5xl lg:text-7xl font-bold mb-6 tracking-tight" data-testid="text-about-title">
+              About <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-purple-500 to-pink-500">Kodekernel</span>
             </h1>
             <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-testid="text-about-subtitle">
-              We're a team of passionate developers and designers committed to delivering 
+              We're a team of passionate developers and designers committed to delivering
               exceptional web solutions that drive business growth.
             </p>
             <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-24">
             <AnimatedSection>
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 220, damping: 20 }}
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="h-full"
               >
                 <Tilt
-                  tiltMaxAngleX={8}
-                  tiltMaxAngleY={8}
+                  tiltMaxAngleX={5}
+                  tiltMaxAngleY={5}
                   glareEnable={true}
-                  glareMaxOpacity={0.06}
-                  scale={1}
-                  className="group"
+                  glareMaxOpacity={0.1}
+                  scale={1.01}
+                  className="h-full"
                 >
-                  <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
+                  <Card className="glow-border p-10 h-full relative overflow-hidden rounded-3xl border-border/50 bg-card/50 backdrop-blur-sm">
                     <div className="glow-inner" />
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                  <Target className="w-6 h-6 text-primary" />
-                </div>
-                <h2 className="text-2xl font-bold mb-4" data-testid="text-mission-title">Our Mission</h2>
-                <p className="text-xs text-muted-foreground leading-relaxed" data-testid="text-mission-content">
-                  To empower businesses of all sizes with world-class web solutions that combine 
-                  beautiful design, robust functionality, and measurable results. We believe in 
-                  creating digital experiences that not only look great but drive real business value.
-                </p>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10 flex items-center justify-center mb-6 shadow-lg shadow-primary/5">
+                      <Target className="w-8 h-8 text-primary" />
+                    </div>
+                    <h2 className="text-3xl font-bold mb-4" data-testid="text-mission-title">Our Mission</h2>
+                    <p className="text-muted-foreground leading-relaxed text-sm" data-testid="text-mission-content">
+                      To empower businesses of all sizes with world-class web solutions that combine
+                      beautiful design, robust functionality, and measurable results. We believe in
+                      creating digital experiences that not only look great but drive real business value.
+                    </p>
                   </Card>
                 </Tilt>
               </motion.div>
@@ -91,29 +98,30 @@ export default function About() {
 
             <AnimatedSection delay={200}>
               <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                whileHover={{ scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 220, damping: 20 }}
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="h-full"
               >
                 <Tilt
-                  tiltMaxAngleX={8}
-                  tiltMaxAngleY={8}
+                  tiltMaxAngleX={5}
+                  tiltMaxAngleY={5}
                   glareEnable={true}
-                  glareMaxOpacity={0.06}
-                  scale={1}
-                  className="group"
+                  glareMaxOpacity={0.1}
+                  scale={1.01}
+                  className="h-full"
                 >
-                  <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
+                  <Card className="glow-border p-10 h-full relative overflow-hidden rounded-3xl border-border/50 bg-card/50 backdrop-blur-sm">
                     <div className="glow-inner" />
-                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-6">
-                      <Eye className="w-6 h-6 text-primary" />
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 border border-purple-500/10 flex items-center justify-center mb-6 shadow-lg shadow-purple-500/5">
+                      <Eye className="w-8 h-8 text-purple-500" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-4" data-testid="text-vision-title">Our Vision</h2>
-                    <p className="text-xs text-muted-foreground leading-relaxed" data-testid="text-vision-content">
-                      To become the most trusted partner for businesses seeking digital transformation. 
-                      We envision a future where technology seamlessly connects businesses with their 
+                    <h2 className="text-3xl font-bold mb-4" data-testid="text-vision-title">Our Vision</h2>
+                    <p className="text-muted-foreground leading-relaxed text-sm" data-testid="text-vision-content">
+                      To become the most trusted partner for businesses seeking digital transformation.
+                      We envision a future where technology seamlessly connects businesses with their
                       customers, creating meaningful interactions and lasting relationships.
                     </p>
                   </Card>
@@ -122,84 +130,81 @@ export default function About() {
             </AnimatedSection>
           </div>
 
-          <div className="mb-20">
-            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12" data-testid="text-values-title">
-              Our Values
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="mb-24">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl lg:text-5xl font-bold mb-4" data-testid="text-values-title">
+                Our <span className="text-primary">Values</span>
+              </h2>
+              <div className="h-px w-48 mx-auto mt-6 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {values.map((value, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 220, damping: 20 }}
-                >
+                <AnimatedSection key={index} delay={index * 100}>
                   <Tilt
                     tiltMaxAngleX={8}
                     tiltMaxAngleY={8}
                     glareEnable={true}
-                    glareMaxOpacity={0.06}
-                    scale={1}
-                    className="group h-full"
+                    glareMaxOpacity={0.05}
+                    scale={1.02}
+                    className="h-full"
                   >
-                    <Card className="glow-border p-6 text-center relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl h-full" data-testid={`card-value-${index}`}>
+                    <Card className="glow-border p-8 h-full relative overflow-hidden rounded-3xl border-border/50 bg-card/30 hover:bg-card/50 transition-colors" data-testid={`card-value-${index}`}>
                       <div className="glow-inner" />
-                      <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <value.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold mb-2" data-testid={`text-value-title-${index}`}>
-                    {value.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground" data-testid={`text-value-description-${index}`}>
-                    {value.description}
-                  </p>
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                        <value.icon className="w-7 h-7 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-bold mb-3" data-testid={`text-value-title-${index}`}>
+                        {value.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed" data-testid={`text-value-description-${index}`}>
+                        {value.description}
+                      </p>
                     </Card>
                   </Tilt>
-                </motion.div>
+                </AnimatedSection>
               ))}
             </div>
           </div>
 
           <div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-center mb-12" data-testid="text-team-title">
-              Meet Our Team
-            </h2>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl lg:text-5xl font-bold mb-4" data-testid="text-team-title">
+                Meet Our <span className="text-purple-500">Team</span>
+              </h2>
+              <div className="h-px w-48 mx-auto mt-6 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {team.map((member, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  whileHover={{ scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 220, damping: 20 }}
-                >
+                <AnimatedSection key={index} delay={index * 100}>
                   <Tilt
-                    tiltMaxAngleX={8}
-                    tiltMaxAngleY={8}
+                    tiltMaxAngleX={5}
+                    tiltMaxAngleY={5}
                     glareEnable={true}
-                    glareMaxOpacity={0.06}
-                    scale={1}
-                    className="group h-full"
+                    glareMaxOpacity={0.05}
+                    scale={1.02}
+                    className="h-full"
                   >
-                    <Card className="glow-border p-6 text-center relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl h-full" data-testid={`card-team-${index}`}>
+                    <Card className="glow-border p-6 text-center relative overflow-hidden rounded-3xl border-border/50 bg-card/30 backdrop-blur-sm" data-testid={`card-team-${index}`}>
                       <div className="glow-inner" />
-                      <Avatar className="w-24 h-24 mx-auto mb-4">
-                    <AvatarFallback className="bg-primary/10 text-primary text-2xl font-semibold">
-                      {member.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="font-semibold mb-1" data-testid={`text-team-name-${index}`}>
-                    {member.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground" data-testid={`text-team-role-${index}`}>
-                    {member.role}
-                  </p>
+                      <div className="relative mx-auto mb-6 w-28 h-28">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-purple-500 blur-sm opacity-50 group-hover:opacity-100 transition-opacity" />
+                        <Avatar className="w-28 h-28 relative border-4 border-background shadow-xl">
+                          <AvatarFallback className="bg-gradient-to-br from-card to-background text-2xl font-bold">
+                            {member.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <h3 className="text-xl font-bold mb-1" data-testid={`text-team-name-${index}`}>
+                        {member.name}
+                      </h3>
+                      <p className="text-sm text-primary font-medium opacity-80" data-testid={`text-team-role-${index}`}>
+                        {member.role}
+                      </p>
                     </Card>
                   </Tilt>
-                </motion.div>
+                </AnimatedSection>
               ))}
             </div>
           </div>

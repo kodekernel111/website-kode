@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import CodeBlock from "@/components/CodeBlock";
+import CommentSection from "@/components/CommentSection";
 
 export default function BlogPost() {
   const [, params] = useRoute("/blog/:id");
@@ -530,6 +531,8 @@ export default function BlogPost() {
               </div>
             </div>
           </div>
+
+          <CommentSection postId={params.id} />
         </div>
       </article>
 

@@ -37,7 +37,7 @@ const faqs = [
 
 export default function FAQSection() {
   return (
-  <section className="max-w-3xl mx-auto px-4 py-16 mb-16 bg-gradient-to-br from-card via-background to-muted rounded-2xl shadow-2xl" aria-labelledby="faq-heading">
+    <section className="max-w-3xl mx-auto px-4 py-16 mb-16 bg-gradient-to-br from-card via-background to-muted rounded-2xl shadow-2xl" aria-labelledby="faq-heading">
       <div className="mx-auto text-center mb-10">
         <h2 id="faq-heading" className="text-4xl font-bold text-primary drop-shadow-sm tracking-tight">
           Frequently Asked Questions
@@ -55,7 +55,7 @@ export default function FAQSection() {
             className="group py-3 px-2 transition-all duration-300 bg-transparent hover:bg-accent/30 focus-within:bg-accent/40 rounded-lg"
           >
             <summary
-                className="flex items-center justify-between cursor-pointer list-none text-base font-semibold text-foreground outline-none select-none transition-colors duration-200 group-open:bg-accent/10 px-2 py-2 rounded-lg focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex items-center justify-between cursor-pointer list-none text-base font-semibold text-foreground outline-none select-none transition-colors duration-200 group-open:bg-accent/10 px-2 py-2 rounded-lg focus-visible:ring-2 focus-visible:ring-primary"
             >
               <span className="transition-colors duration-200 pl-5">{item.q}</span>
               <span className="inline-block ml-3 text-primary text-2xl transition-transform duration-300 group-open:rotate-45 group-open:scale-125">
