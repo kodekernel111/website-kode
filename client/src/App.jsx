@@ -18,6 +18,8 @@ import Donate from "@/pages/Donate";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import Logout from "@/pages/Logout";
+import ForgotPassword from "@/pages/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
 import TermsOfService from "@/pages/TermsOfService";
 import Navigation from "@/components/Navigation";
@@ -53,6 +55,8 @@ function Router() {
           <Route path="/donate" component={Donate} />
           <Route path="/login" component={Login} />
           <Route path="/signup" component={Signup} />
+          <Route path="/forgot-password" component={ForgotPassword} />
+          <Route path="/reset-password" component={ResetPassword} />
           <Route path="/logout" component={Logout} />
           <Route path="/profile" component={Profile} />
           <Route path="/write" component={WriteBlog} />

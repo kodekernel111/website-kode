@@ -18,8 +18,10 @@ export default function Profile() {
     const [_, setLocation] = useLocation();
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [formData, setFormData] = useState({});
+    const [passwordData, setPasswordData] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -81,6 +83,39 @@ export default function Profile() {
             setIsEditing(false);
         } catch (error) {
             toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
+        }
+    };
+
+    const handleChangePassword = async (e) => {
+        e.preventDefault();
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            toast({ title: "Error", description: "New passwords do not match", variant: "destructive" });
+            return;
+        }
+
+        try {
+            const res = await fetch("http://localhost:8080/api/auth/change-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    email: user.sub || user.email,
+                    oldPassword: passwordData.oldPassword,
+                    newPassword: passwordData.newPassword
+                })
+            });
+
+            if (!res.ok) {
+                const err = await res.json(); // Try to parse error
+                throw new Error(err.message || "Failed to change password");
+            }
+
+            toast({ title: "Success", description: "Password changed successfully." });
+            setIsChangingPassword(false);
+            setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+        } catch (error) {
+            // Check if error is JSON (from catch above) or just message or text
+            console.error(error);
+            toast({ title: "Error", description: error.message || "Incorrect old password or server error", variant: "destructive" });
         }
     };
 
@@ -153,9 +188,12 @@ export default function Profile() {
                                 </motion.div>
                             )}
 
-                            <div className="mt-8 flex justify-center pt-6 border-t border-border/50">
+                            <div className="mt-8 flex justify-center gap-4 pt-6 border-t border-border/50">
                                 <Button variant="outline" onClick={() => setIsEditing(true)} className="min-w-[150px] border-primary/20 hover:bg-primary/10 hover:text-primary transition-all duration-300 gap-2">
                                     <Edit2 className="w-4 h-4" /> Edit Profile
+                                </Button>
+                                <Button variant="outline" onClick={() => setIsChangingPassword(true)} className="min-w-[150px] border-primary/20 hover:bg-primary/10 hover:text-primary transition-all duration-300 gap-2">
+                                    <Shield className="w-4 h-4" /> Change Password
                                 </Button>
                             </div>
                         </CardContent>
@@ -200,6 +238,53 @@ export default function Profile() {
                         <DialogFooter>
                             <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>Cancel</Button>
                             <Button type="submit">Save Bio</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Change Password Dialog */}
+            <Dialog open={isChangingPassword} onOpenChange={setIsChangingPassword}>
+                <DialogContent className="bg-card text-white border-border/50">
+                    <DialogHeader>
+                        <DialogTitle>Change Password</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleChangePassword} className="space-y-4 py-2">
+                        <div className="space-y-2">
+                            <Label>Current Password</Label>
+                            <Input
+                                type="password"
+                                value={passwordData.oldPassword}
+                                onChange={e => setPasswordData({ ...passwordData, oldPassword: e.target.value })}
+                                required
+                                className="bg-background/50"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>New Password</Label>
+                            <Input
+                                type="password"
+                                value={passwordData.newPassword}
+                                onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                                required
+                                minLength={8}
+                                className="bg-background/50"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Confirm New Password</Label>
+                            <Input
+                                type="password"
+                                value={passwordData.confirmPassword}
+                                onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                                required
+                                minLength={8}
+                                className="bg-background/50"
+                            />
+                        </div>
+                        <DialogFooter>
+                            <Button type="button" variant="ghost" onClick={() => setIsChangingPassword(false)}>Cancel</Button>
+                            <Button type="submit">Update Password</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
