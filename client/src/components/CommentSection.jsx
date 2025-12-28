@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { formatDistanceToNow } from "date-fns";
 import { Send, Trash2, User, MessageSquare, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +44,7 @@ const CommentItem = ({ comment, postId, token, isAuthenticated, onDelete, onRepl
         <div className="group">
             <div className="flex gap-3 md:gap-4 p-4 rounded-xl hover:bg-card/30 transition-colors">
                 <Avatar className="w-8 h-8 md:w-10 md:h-10 border border-border flex-shrink-0">
+                    <AvatarImage src={comment.authorProfilePic} className="object-cover" />
                     <AvatarFallback className="bg-primary/10 text-primary text-xs md:text-sm font-semibold">
                         {comment.authorInitials || <User className="w-4 h-4" />}
                     </AvatarFallback>
@@ -141,7 +142,7 @@ export default function CommentSection({ postId }) {
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(false);
 
-    const { token, isAuthenticated } = useSelector((state) => state.auth);
+    const { user, token, isAuthenticated } = useSelector((state) => state.auth);
     const { toast } = useToast();
 
     const refreshComments = () => {
@@ -248,6 +249,7 @@ export default function CommentSection({ postId }) {
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="flex gap-4">
                             <Avatar className="w-10 h-10 border border-border">
+                                <AvatarImage src={user?.profilePic} className="object-cover" />
                                 <AvatarFallback className="bg-primary/20 text-primary font-bold">ME</AvatarFallback>
                             </Avatar>
                             <div className="flex-1">

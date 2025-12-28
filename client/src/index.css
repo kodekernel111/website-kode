@@ -1,22 +1,29 @@
 /* Remove underline from .no-underline links, including on hover and active */
-a.no-underline, a.no-underline:hover, a.no-underline:active, .no-underline, .no-underline:hover, .no-underline:active {
+a.no-underline,
+a.no-underline:hover,
+a.no-underline:active,
+.no-underline,
+.no-underline:hover,
+.no-underline:active {
   text-decoration: none !important;
 }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* LIGHT MODE */
 :root {
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(0, 0, 0, .10);
+  --badge-outline: rgba(0, 0, 0, .05);
 
   /* Automatic computation of border around primary / danger buttons */
-  --opaque-button-border-intensity: -8; /* In terms of percentages */
+  --opaque-button-border-intensity: -8;
+  /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(0, 0, 0, .03);
+  --elevate-2: rgba(0, 0, 0, .08);
 
   --background: 0 0% 98%;
   /* light background with subtle brand tint */
@@ -140,14 +147,15 @@ a.no-underline, a.no-underline:hover, a.no-underline:active, .no-underline, .no-
 }
 
 .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(255, 255, 255, .10);
+  --badge-outline: rgba(255, 255, 255, .05);
 
-  --opaque-button-border-intensity: 9;  /* In terms of percentages */
+  --opaque-button-border-intensity: 9;
+  /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(255, 255, 255, .04);
+  --elevate-2: rgba(255, 255, 255, .09);
 
   --background: 222 6% 8%;
 
@@ -234,9 +242,14 @@ a.no-underline, a.no-underline:hover, a.no-underline:active, .no-underline, .no-
     @apply border-border;
   }
 
+  html {
+    scrollbar-gutter: stable;
+  }
+
   body {
     /* keep typography and use themed background so pages relying on it don't break */
     @apply font-sans antialiased bg-background text-foreground;
+    padding-right: 0 !important;
   }
 }
 
@@ -354,9 +367,17 @@ a.no-underline, a.no-underline:hover, a.no-underline:active, .no-underline, .no-
 
 /* Neon / gradient glow border animation */
 @keyframes gradientGlow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* Use ::before as an animated border. The mask technique creates a frame-like border */
@@ -369,15 +390,17 @@ a.no-underline, a.no-underline:hover, a.no-underline:active, .no-underline, .no-
   position: absolute;
   inset: 0;
   pointer-events: none;
-  border-radius: 1rem; /* matches rounded-2xl */
-  padding: 2px; /* thickness of the visible border */
+  border-radius: 1rem;
+  /* matches rounded-2xl */
+  padding: 2px;
+  /* thickness of the visible border */
   background: linear-gradient(90deg, #00ffff, #6366f1, #8b5cf6, #ec4899, #00ffff);
   background-size: 200% 200%;
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
-          mask-composite: exclude;
+  mask-composite: exclude;
   mask-composite: exclude;
   opacity: 0;
   transform: translateZ(0);
@@ -398,7 +421,7 @@ a.no-underline, a.no-underline:hover, a.no-underline:active, .no-underline, .no-
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  box-shadow: 0 12px 40px rgba(99,102,241,0.08), inset 0 0 24px rgba(14,165,233,0.06);
+  box-shadow: 0 12px 40px rgba(99, 102, 241, 0.08), inset 0 0 24px rgba(14, 165, 233, 0.06);
   opacity: 0;
   transition: opacity 0.28s ease, box-shadow 0.28s ease;
 }
@@ -406,13 +429,18 @@ a.no-underline, a.no-underline:hover, a.no-underline:active, .no-underline, .no-
 .glow-border:hover .glow-inner,
 .glow-border.group:hover .glow-inner {
   opacity: 1;
-  box-shadow: 0 18px 80px rgba(99,102,241,0.25), inset 0 0 40px rgba(14,165,233,0.15);
+  box-shadow: 0 18px 80px rgba(99, 102, 241, 0.25), inset 0 0 40px rgba(14, 165, 233, 0.15);
 }
 
 /* Keep visuals subtle on small screens */
 @media (max-width: 640px) {
-  .glow-border::before { filter: blur(4px) saturate(120%); }
-  .glow-border .glow-inner { box-shadow: 0 8px 24px rgba(99,102,241,0.08), inset 0 0 20px rgba(14,165,233,0.04); }
+  .glow-border::before {
+    filter: blur(4px) saturate(120%);
+  }
+
+  .glow-border .glow-inner {
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.08), inset 0 0 20px rgba(14, 165, 233, 0.04);
+  }
 }
 
 /* Brand-wide component styles to unify theme */

@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
     Plus, Trash2, Edit2, Star, User as UserIcon, Search, Loader2, X,
-    Code, Palette, Smartphone, Rocket, BarChart
+    Code, Palette, Smartphone, Rocket, BarChart, Upload
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,6 +39,7 @@ export default function Controls() {
     const [plans, setPlans] = useState([]);
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
+    const [products, setProducts] = useState([]);
     const [availableRoles, setAvailableRoles] = useState([]);
 
     // User Management States
@@ -55,6 +56,11 @@ export default function Controls() {
     const [isTestimonialDialogOpen, setIsTestimonialDialogOpen] = useState(false);
     const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
     const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
+    const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+    const [uploading, setUploading] = useState(false);
+
+    // Settings State
+    const [settingsForm, setSettingsForm] = useState({ betaEnabled: false, betaMessage: "" });
 
     // Style Lock State for Service Dialog
     const [isStyleLocked, setIsStyleLocked] = useState(true);
@@ -69,6 +75,9 @@ export default function Controls() {
     });
     const [testimonialForm, setTestimonialForm] = useState({
         name: "", role: "", content: "", rating: 5, displayOrder: 1
+    });
+    const [productForm, setProductForm] = useState({
+        title: "", price: "", category: "SaaS", description: "", tags: "", imageUrl: ""
     });
     const [userForm, setUserForm] = useState({
         roles: ["USER"], displayRole: "", showOnTeam: false
@@ -144,15 +153,25 @@ export default function Controls() {
 
     const fetchData = async () => {
         try {
-            const [plansRes, servicesRes, testimonialsRes] = await Promise.all([
+            const [plansRes, servicesRes, testimonialsRes, productsRes] = await Promise.all([
                 fetch("http://localhost:8080/api/pricing-plans"),
                 fetch("http://localhost:8080/api/services"),
-                fetch("http://localhost:8080/api/testimonials")
+                fetch("http://localhost:8080/api/testimonials"),
+                fetch("http://localhost:8080/api/products")
             ]);
 
             if (plansRes.ok) setPlans(await plansRes.json());
             if (servicesRes.ok) setServices(await servicesRes.json());
             if (testimonialsRes.ok) setTestimonials(await testimonialsRes.json());
+            if (productsRes.ok) setProducts(await productsRes.json());
+
+            const confRes = await fetch("http://localhost:8080/api/config");
+            if (confRes.ok) {
+                const confData = await confRes.json();
+                const enabled = confData.find(c => c.configKey === "beta_enabled")?.configValue === "true";
+                const message = confData.find(c => c.configKey === "beta_message")?.configValue || "";
+                setSettingsForm({ betaEnabled: enabled, betaMessage: message });
+            }
         } catch (error) {
             toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
         }
@@ -192,6 +211,49 @@ export default function Controls() {
     const openTestimonialDialog = (t = null) => { setEditingId(t?.id); setTestimonialForm(t ? { ...t } : { name: "", role: "", content: "", rating: 5, displayOrder: testimonials.length + 1 }); setIsTestimonialDialogOpen(true); };
     const handleTestimonialSubmit = async (e) => { e.preventDefault(); await submitData("testimonials", editingId, testimonialForm, setIsTestimonialDialogOpen); };
 
+    // Product Handlers
+    const openProductDialog = (p = null) => {
+        setEditingId(p?.id);
+        const defaultText = "Buy Source Code";
+        setProductForm(p ? { ...p, tags: p.tags.join(", "), buttonText: p.buttonText || defaultText, buttonLink: p.buttonLink || "" } : { title: "", price: "", category: "SaaS", description: "", tags: "", imageUrl: "", buttonText: defaultText, buttonLink: "" });
+        setIsProductDialogOpen(true);
+    };
+    const handleProductSubmit = async (e) => {
+        e.preventDefault();
+        await submitData("products", editingId, { ...productForm, tags: productForm.tags.split(",").map(t => t.trim()).filter(t => t) }, setIsProductDialogOpen);
+    };
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        setUploading(true);
+        try {
+            const res = await fetch("http://localhost:8080/api/upload/image", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || "Upload failed");
+            }
+
+            const data = await res.json();
+            setProductForm(prev => ({ ...prev, imageUrl: data.url }));
+            toast({ title: "Success", description: "Image uploaded" });
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        } finally {
+            setUploading(false);
+        }
+    };
+
     // --- User Handlers ---
     const selectUserForEdit = (u) => {
         setEditingId(u.id);
@@ -222,6 +284,25 @@ export default function Controls() {
             setNewRoleName("");
             setIsRoleDialogOpen(false);
             fetchRoles();
+        } catch (err) {
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        }
+    };
+
+    const saveSettings = async () => {
+        try {
+            const payload = [
+                { configKey: "beta_enabled", configValue: settingsForm.betaEnabled.toString() },
+                { configKey: "beta_message", configValue: settingsForm.betaMessage }
+            ];
+            const res = await fetch("http://localhost:8080/api/config/batch", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) throw new Error("Failed to save settings");
+            toast({ title: "Success", description: "Settings saved successfully" });
+            fetchData(); // Refresh settings
         } catch (err) {
             toast({ title: "Error", description: err.message, variant: "destructive" });
         }
@@ -259,11 +340,13 @@ export default function Controls() {
                 <h1 className="text-3xl font-bold mb-8">Admin Controls</h1>
 
                 <Tabs defaultValue="users" className="space-y-6">
-                    <TabsList className="bg-card border border-border/50">
+                    <TabsList className="bg-muted/20 p-1 mb-8">
                         <TabsTrigger value="users">Users & Team</TabsTrigger>
-                        <TabsTrigger value="pricing">Pricing Plans</TabsTrigger>
+                        <TabsTrigger value="plans">Pricing Plans</TabsTrigger>
                         <TabsTrigger value="services">Services</TabsTrigger>
+                        <TabsTrigger value="products">Store Products</TabsTrigger>
                         <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
+                        <TabsTrigger value="settings">Settings</TabsTrigger>
                     </TabsList>
 
                     {/* USERS & TEAM */}
@@ -330,7 +413,7 @@ export default function Controls() {
                     </TabsContent>
 
                     {/* PRICING PLANS */}
-                    <TabsContent value="pricing" className="space-y-4">
+                    <TabsContent value="plans" className="space-y-4">
                         <div className="flex justify-end"><Button onClick={() => openPlanDialog()} className="gap-2"><Plus className="w-4 h-4" /> Add Plan</Button></div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {plans.map(plan => (
@@ -408,6 +491,58 @@ export default function Controls() {
                                 </Card>
                             ))}
                         </div>
+                    </TabsContent>
+                    {/* PRODUCTS */}
+                    <TabsContent value="products" className="space-y-4">
+                        <div className="flex justify-end"><Button onClick={() => openProductDialog()} className="gap-2"><Plus className="w-4 h-4" /> Add Product</Button></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {products.map(p => (
+                                <Card key={p.id} className="bg-card border-border/50 flex flex-col">
+                                    <div className="aspect-video relative bg-muted rounded-t-lg overflow-hidden">
+                                        {p.imageUrl ? <img src={p.imageUrl} alt={p.title} className="w-full h-full object-cover" /> : <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>}
+                                    </div>
+                                    <CardHeader>
+                                        <CardTitle className="text-lg">{p.title}</CardTitle>
+                                        <CardDescription className="text-primary">{p.price}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="flex-1 flex flex-col justify-between">
+                                        <div className="mb-4">
+                                            <div className="text-xs text-muted-foreground mb-2 px-2 py-1 bg-primary/10 rounded w-fit">{p.category}</div>
+                                            <p className="text-sm text-muted-foreground line-clamp-3">{p.description}</p>
+                                        </div>
+                                        <div className="flex gap-2 mt-auto">
+                                            <Button size="sm" variant="outline" className="flex-1" onClick={() => openProductDialog(p)}><Edit2 className="w-4 h-4 mr-2" /> Edit</Button>
+                                            <Button size="sm" variant="destructive" onClick={() => deleteData('products', p.id)}><Trash2 className="w-4 h-4" /></Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </TabsContent>
+                    {/* SETTINGS */}
+                    <TabsContent value="settings" className="space-y-6">
+                        <Card className="bg-card border-border/50">
+                            <CardHeader><CardTitle>Store Configuration</CardTitle></CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="flex items-center justify-between p-4 border rounded-lg border-border/50 bg-background/20">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base text-white">Enable Beta Access Banner</Label>
+                                        <p className="text-sm text-muted-foreground">Show the warning banner on the Store page.</p>
+                                    </div>
+                                    <Switch checked={settingsForm.betaEnabled} onCheckedChange={c => setSettingsForm({ ...settingsForm, betaEnabled: c })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-white">Banner Message</Label>
+                                    <Textarea
+                                        value={settingsForm.betaMessage}
+                                        onChange={e => setSettingsForm({ ...settingsForm, betaMessage: e.target.value })}
+                                        className="min-h-[100px] bg-background/50 font-mono text-xs text-white"
+                                    />
+                                    <p className="text-xs text-muted-foreground">HTML is allowed. Use <code className="bg-muted/20 px-1 rounded">&lt;a&gt;</code> tags for links.</p>
+                                </div>
+                                <Button onClick={saveSettings}>Save Settings</Button>
+                            </CardContent>
+                        </Card>
                     </TabsContent>
                 </Tabs>
             </div>
@@ -491,6 +626,38 @@ export default function Controls() {
                 </DialogContent>
             </Dialog>
 
+            {/* Product Dialog */}
+            <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
+                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto">
+                    <DialogHeader><DialogTitle>Product</DialogTitle></DialogHeader>
+                    <form onSubmit={handleProductSubmit} className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="aspect-video bg-muted rounded relative overflow-hidden flex items-center justify-center border border-border/50">
+                                {productForm.imageUrl ? <img src={productForm.imageUrl} alt="preview" className="w-full h-full object-cover" /> : <span className="text-muted-foreground text-xs">No Image</span>}
+                                {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 className="animate-spin" /></div>}
+                            </div>
+                            <div className="flex flex-col gap-2 justify-center">
+                                <Label htmlFor="prod-img" className="cursor-pointer bg-primary/20 hover:bg-primary/30 text-primary text-center py-2 rounded transition">Upload Image</Label>
+                                <input id="prod-img" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                <Input value={productForm.imageUrl} onChange={e => setProductForm({ ...productForm, imageUrl: e.target.value })} placeholder="Or Image URL" className="bg-background/50 text-xs" />
+                            </div>
+                        </div>
+                        <Input value={productForm.title} onChange={e => setProductForm({ ...productForm, title: e.target.value })} placeholder="Title" className="bg-background/50" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="Price" className="bg-background/50" />
+                            <Input value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} placeholder="Category" className="bg-background/50" />
+                        </div>
+                        <Textarea value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} placeholder="Description" className="bg-background/50" />
+                        <Input value={productForm.tags} onChange={e => setProductForm({ ...productForm, tags: e.target.value })} placeholder="Tags (comma separated)" className="bg-background/50" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input value={productForm.buttonText} onChange={e => setProductForm({ ...productForm, buttonText: e.target.value })} placeholder="Button Text (e.g. Add to Cart)" className="bg-background/50" />
+                            <Input value={productForm.buttonLink} onChange={e => setProductForm({ ...productForm, buttonLink: e.target.value })} placeholder="Button Link (e.g. /contact)" className="bg-background/50" />
+                        </div>
+                        <Button type="submit">Save Product</Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
             {/* User Config Dialog */}
             <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
                 <DialogContent className="bg-card text-white border-border/50">
@@ -557,6 +724,6 @@ export default function Controls() {
             </Dialog>
 
             <Footer />
-        </div>
+        </div >
     );
 }

@@ -13,6 +13,7 @@ import Blog from "@/pages/Blog";
 import BlogPost from "@/pages/BlogPost";
 import Testimonials from "@/pages/Testimonials";
 import Contact from "@/pages/Contact";
+import Projects from "@/pages/Projects";
 import Donate from "@/pages/Donate";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
@@ -48,6 +49,7 @@ function Router() {
           <Route path="/blog/:id" component={BlogPost} />
           <Route path="/testimonials" component={Testimonials} />
           <Route path="/contact" component={Contact} />
+          <Route path="/projects" component={Projects} />
           <Route path="/donate" component={Donate} />
           <Route path="/login" component={Login} />
           <Route path="/signup" component={Signup} />

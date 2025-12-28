@@ -44,7 +44,7 @@ export default function Donate() {
   return (
     <div className="min-h-screen">
       <Navigation />
-      
+
       <section className="pt-32 pb-20 lg:pb-32">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -55,7 +55,7 @@ export default function Donate() {
               Buy Us a Coffee
             </h1>
             <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8" data-testid="text-donate-subtitle">
-              Love what we do? Support our team and help us continue creating amazing content, 
+              Love what we do? Support our team and help us continue creating amazing content,
               tools, and resources for the developer community.
             </p>
             <span className="block text-xs text-muted-foreground/70 italic mb-4">More donation options coming soon!</span>
@@ -64,67 +64,67 @@ export default function Donate() {
 
           <AnimatedSection>
             <Card className="p-8 mb-12">
-            <h2 className="text-2xl font-bold mb-6 text-center" data-testid="text-amount-title">
-              Choose an Amount
-            </h2>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              {amounts.map((amount) => (
-                <Button
-                  key={amount.value}
-                  variant={selectedAmount === amount.value ? "default" : "outline"}
-                  size="lg"
-                  onClick={() => {
-                    setSelectedAmount(amount.value);
-                    setCustomAmount("");
-                  }}
-                  data-testid={`button-amount-${amount.value}`}
-                  className="h-16 text-lg"
-                >
-                  {amount.label}
-                </Button>
-              ))}
-            </div>
+              <h2 className="text-2xl font-bold mb-6 text-center" data-testid="text-amount-title">
+                Choose an Amount
+              </h2>
 
-            <div className="mb-8">
-              <label className="block text-sm font-medium mb-2">
-                Or enter a custom amount
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  $
-                </span>
-                <input
-                  type="number"
-                  min="1"
-                  placeholder="Custom amount"
-                  value={customAmount}
-                  onChange={(e) => {
-                    setCustomAmount(e.target.value);
-                    setSelectedAmount(0);
-                  }}
-                  disabled
-                  className="w-full h-12 pl-8 pr-4 rounded-md border border-input bg-background"
-                  data-testid="input-custom-amount"
-                />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                {amounts.map((amount) => (
+                  <Button
+                    key={amount.value}
+                    variant={selectedAmount === amount.value ? "default" : "outline"}
+                    size="lg"
+                    onClick={() => {
+                      setSelectedAmount(amount.value);
+                      setCustomAmount("");
+                    }}
+                    data-testid={`button-amount-${amount.value}`}
+                    className="h-16 text-lg"
+                  >
+                    {amount.label}
+                  </Button>
+                ))}
               </div>
-            </div>
 
-            <Button
-              size="lg"
-              className="w-full gap-2"
-              disabled
-              onClick={handleDonate}
-              data-testid="button-donate-now"
-            >
-              <Coffee className="w-5 h-5" />
-              Donate ${customAmount || selectedAmount}
-            </Button>
+              <div className="mb-8">
+                <label className="block text-sm font-medium mb-2">
+                  Or enter a custom amount
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    $
+                  </span>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Custom amount"
+                    value={customAmount}
+                    onChange={(e) => {
+                      setCustomAmount(e.target.value);
+                      setSelectedAmount(0);
+                    }}
+                    disabled
+                    className="w-full h-12 pl-8 pr-4 rounded-md border border-input bg-background"
+                    data-testid="input-custom-amount"
+                  />
+                </div>
+              </div>
 
-            <p className="text-sm text-muted-foreground text-center mt-4" data-testid="text-payment-note">
-              Secure payment powered by PayPal
-            </p>
-          </Card>
+              <Button
+                size="lg"
+                className="w-full gap-2"
+                disabled
+                onClick={handleDonate}
+                data-testid="button-donate-now"
+              >
+                <Coffee className="w-5 h-5" />
+                Donate ${customAmount || selectedAmount}
+              </Button>
+
+              <p className="text-sm text-muted-foreground text-center mt-4" data-testid="text-payment-note">
+                Secure payment powered by PayPal
+              </p>
+            </Card>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -150,7 +150,7 @@ export default function Donate() {
               Thank You for Your Support!
             </h3>
             <p className="text-muted-foreground text-center leading-relaxed" data-testid="text-thank-you-message">
-              Every contribution, no matter the size, helps us continue our mission to share knowledge 
+              Every contribution, no matter the size, helps us continue our mission to share knowledge
               and build tools that make a difference. Your generosity is what keeps us going!
             </p>
           </Card>

@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { useSelector, useDispatch } from "react-redux";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Phone, Globe, Shield, Edit2 } from "lucide-react";
+import { User, Mail, Phone, Globe, Shield, Edit2, Loader2, Upload } from "lucide-react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -18,7 +18,36 @@ export default function Profile() {
     const [_, setLocation] = useLocation();
     const { toast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
+    const [uploading, setUploading] = useState(false);
     const [formData, setFormData] = useState({});
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const uploadData = new FormData();
+        uploadData.append("image", file);
+
+        setUploading(true);
+        try {
+            const res = await fetch("http://localhost:8080/api/upload/image", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: uploadData
+            });
+
+            if (!res.ok) throw new Error("Upload failed");
+
+            const data = await res.json();
+            setFormData(prev => ({ ...prev, profilePic: data.url }));
+            toast({ title: "Success", description: "Image uploaded" });
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error", description: "Failed to upload image", variant: "destructive" });
+        } finally {
+            setUploading(false);
+        }
+    };
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -30,7 +59,8 @@ export default function Profile() {
                 phone: user.phone || "",
                 country: user.country || "",
                 bio: user.bio || "",
-                displayRole: user.displayRole || ""
+                displayRole: user.displayRole || "",
+                profilePic: user.profilePic || ""
             });
         }
     }, [isAuthenticated, user, setLocation]);
@@ -86,8 +116,8 @@ export default function Profile() {
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
                         <CardHeader className="text-center pb-8 border-b border-border/50">
-                            <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4 ring-2 ring-primary/20 ring-offset-2 ring-offset-background shadow-lg shadow-primary/5">
-                                <User className="w-12 h-12 text-primary" />
+                            <div className="w-24 h-24 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4 ring-2 ring-primary/20 ring-offset-2 ring-offset-background shadow-lg shadow-primary/5 overflow-hidden">
+                                {user.profilePic ? <img src={user.profilePic} alt="Profile" className="w-full h-full object-cover" /> : <User className="w-12 h-12 text-primary" />}
                             </div>
                             <CardTitle className="text-2xl font-bold text-white">{user.firstName} {user.lastName}</CardTitle>
 
@@ -140,6 +170,23 @@ export default function Profile() {
                         <DialogTitle>Edit Profile</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleUpdate} className="space-y-4 py-2">
+                        <div className="space-y-4 text-center">
+                            <Label>Profile Picture</Label>
+                            <div className="w-24 h-24 mx-auto rounded-full bg-muted relative overflow-hidden flex items-center justify-center border-2 border-dashed border-border/50">
+                                {formData.profilePic ? (
+                                    <img src={formData.profilePic} alt="Preview" className="w-full h-full object-cover" />
+                                ) : (
+                                    <User className="w-8 h-8 text-muted-foreground" />
+                                )}
+                                {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 className="animate-spin w-6 h-6 text-white" /></div>}
+                            </div>
+                            <div className="flex justify-center">
+                                <Label htmlFor="upload-avatar" className="cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-md transition text-sm font-medium flex items-center gap-2">
+                                    <Upload className="w-4 h-4" /> Upload Picture
+                                </Label>
+                                <Input id="upload-avatar" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                            </div>
+                        </div>
                         <div className="space-y-2">
                             <Label>Bio</Label>
                             <Textarea

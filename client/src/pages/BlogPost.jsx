@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Calendar, Clock, ArrowLeft, Edit, Heart, Eye } from "lucide-react";
@@ -302,13 +302,13 @@ export default function BlogPost() {
             <div className="flex items-center gap-6 mb-8">
               <div className="flex items-center gap-3">
                 <Avatar>
+                  <AvatarImage src={post.authorProfilePic} className="object-cover" />
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                     {authorInitials}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <div className="font-semibold" data-testid="text-author">{post.authorName}</div>
-                  <div className="text-sm text-muted-foreground">{post.authorEmail}</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -414,6 +414,7 @@ export default function BlogPost() {
                   <div className="relative group">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity" />
                     <Avatar className="relative w-24 h-24 md:w-28 md:h-28 border-4 border-background shadow-2xl">
+                      <AvatarImage src={post.authorProfilePic} className="object-cover" />
                       <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary text-3xl font-bold">
                         {authorInitials}
                       </AvatarFallback>
@@ -433,13 +434,8 @@ export default function BlogPost() {
                           </Badge>
                         ))}
                       </div>
-                      <p className="text-muted-foreground flex items-center gap-2">
-                        <span className="text-primary">✉</span>
-                        {post.authorEmail}
-                      </p>
                     </div>
-
-                    <p className="text-base leading-relaxed text-muted-foreground max-w-2xl" data-testid="text-author-bio">
+                    <p className="text-sm italic leading-relaxed text-muted-foreground max-w-2xl" data-testid="text-author-bio">
                       {post.authorBio || "Passionate writer and developer at Kodekernel, sharing insights on modern web development, best practices, and cutting-edge technologies. Always learning, always building."}
                     </p>
 
