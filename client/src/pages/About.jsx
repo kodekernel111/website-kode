@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
 import AnimatedSection from "@/components/AnimatedSection";
 import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Target, Eye, Award, Users } from "lucide-react";
 
 const values = [
@@ -34,6 +34,7 @@ const values = [
 
 export default function About() {
   const [team, setTeam] = useState([]);
+  const [showTeam, setShowTeam] = useState(true);
 
   useEffect(() => {
     fetch("http://localhost:8080/api/users/team")
@@ -43,6 +44,14 @@ export default function About() {
       })
       .then(data => setTeam(data))
       .catch(e => console.error("Failed to fetch team", e));
+
+    fetch("http://localhost:8080/api/config")
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        const val = data.find(c => c.configKey === "team_section_enabled")?.configValue;
+        setShowTeam(val !== "false");
+      })
+      .catch(e => console.error(e));
   }, []);
 
   return (
@@ -173,7 +182,7 @@ export default function About() {
             </div>
           </div>
 
-          {team.length > 0 && (
+          {team.length > 0 && showTeam && (
             <div>
               <div className="text-center mb-16">
                 <h2 className="text-3xl lg:text-5xl font-bold mb-4" data-testid="text-team-title">
@@ -198,6 +207,7 @@ export default function About() {
                         <div className="relative mx-auto mb-6 w-28 h-28">
                           <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary to-purple-500 blur-sm opacity-50 group-hover:opacity-100 transition-opacity" />
                           <Avatar className="w-28 h-28 relative border-4 border-background shadow-xl">
+                            <AvatarImage src={member.profilePic} className="object-cover" />
                             <AvatarFallback className="bg-gradient-to-br from-card to-background text-2xl font-bold">
                               {member.firstName?.[0]}{member.lastName?.[0]}
                             </AvatarFallback>

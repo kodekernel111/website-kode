@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import { logout } from "../store/authSlice";
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showCoffee, setShowCoffee] = useState(true);
   const [location, setLocation] = useLocation();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -36,6 +37,16 @@ export default function Navigation() {
     { href: "/testimonials", label: "Testimonials" },
     { href: "/about", label: "About" },
   ];
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/config")
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        const val = data.find(c => c.configKey === "buy_coffee_enabled")?.configValue;
+        setShowCoffee(val !== "false");
+      })
+      .catch(e => console.error(e));
+  }, [location]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border">
@@ -66,15 +77,17 @@ export default function Navigation() {
           </div>
 
           <div className="hidden lg:flex items-center gap-3">
-            <Link href="/donate">
-              <Button
-                data-testid="button-donate"
-                className="relative px-6 py-2 font-semibold text-white bg-gradient-to-r from-pink-500 via-red-400 to-yellow-400 shadow-lg rounded-full overflow-hidden transition-all duration-300 hover:from-yellow-400 hover:via-pink-500 hover:to-red-400 hover:scale-105 focus:ring-2 focus:ring-pink-400/60 focus:outline-none before:absolute before:inset-0 before:bg-white/10 before:rounded-full before:blur before:opacity-0 hover:before:opacity-100"
-                style={{ boxShadow: '0 0 16px 2px rgba(236,72,153,0.18), 0 2px 8px 0 rgba(251,191,36,0.10)' }}
-              >
-                Buy us a Coffee
-              </Button>
-            </Link>
+            {showCoffee && (
+              <Link href="/donate">
+                <Button
+                  data-testid="button-donate"
+                  className="relative px-6 py-2 font-semibold text-white bg-gradient-to-r from-pink-500 via-red-400 to-yellow-400 shadow-lg rounded-full overflow-hidden transition-all duration-300 hover:from-yellow-400 hover:via-pink-500 hover:to-red-400 hover:scale-105 focus:ring-2 focus:ring-pink-400/60 focus:outline-none before:absolute before:inset-0 before:bg-white/10 before:rounded-full before:blur before:opacity-0 hover:before:opacity-100"
+                  style={{ boxShadow: '0 0 16px 2px rgba(236,72,153,0.18), 0 2px 8px 0 rgba(251,191,36,0.10)' }}
+                >
+                  Buy us a Coffee
+                </Button>
+              </Link>
+            )}
             <Link href="/contact">
               <Button
                 data-testid="button-get-started"
@@ -147,15 +160,17 @@ export default function Navigation() {
               </Link>
             ))}
             <div className="pt-4 space-y-2">
-              <Link href="/donate">
-                <Button
-                  className="w-full relative px-6 py-2 font-semibold text-white bg-gradient-to-r from-pink-500 via-red-400 to-yellow-400 shadow-lg rounded-full overflow-hidden transition-all duration-300 hover:from-yellow-400 hover:via-pink-500 hover:to-red-400 hover:scale-105 focus:ring-2 focus:ring-pink-400/60 focus:outline-none before:absolute before:inset-0 before:bg-white/10 before:rounded-full before:blur before:opacity-0 hover:before:opacity-100"
-                  style={{ boxShadow: '0 0 16px 2px rgba(236,72,153,0.18), 0 2px 8px 0 rgba(251,191,36,0.10)' }}
-                  data-testid="button-mobile-donate"
-                >
-                  Buy us a Coffee
-                </Button>
-              </Link>
+              {showCoffee && (
+                <Link href="/donate">
+                  <Button
+                    className="w-full relative px-6 py-2 font-semibold text-white bg-gradient-to-r from-pink-500 via-red-400 to-yellow-400 shadow-lg rounded-full overflow-hidden transition-all duration-300 hover:from-yellow-400 hover:via-pink-500 hover:to-red-400 hover:scale-105 focus:ring-2 focus:ring-pink-400/60 focus:outline-none before:absolute before:inset-0 before:bg-white/10 before:rounded-full before:blur before:opacity-0 hover:before:opacity-100"
+                    style={{ boxShadow: '0 0 16px 2px rgba(236,72,153,0.18), 0 2px 8px 0 rgba(251,191,36,0.10)' }}
+                    data-testid="button-mobile-donate"
+                  >
+                    Buy us a Coffee
+                  </Button>
+                </Link>
+              )}
               <Link href="/contact">
                 <Button
                   className="w-full mt-2 relative px-6 py-2 font-semibold text-white bg-gradient-to-r from-primary to-accent shadow-lg rounded-full overflow-hidden transition-all duration-300 hover:from-accent hover:to-primary hover:scale-105 focus:ring-2 focus:ring-accent/60 focus:outline-none before:absolute before:inset-0 before:bg-white/10 before:rounded-full before:blur before:opacity-0 hover:before:opacity-100"

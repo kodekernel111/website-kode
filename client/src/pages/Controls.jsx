@@ -17,6 +17,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const ICON_STYLES = {
     Code: { gradient: "from-blue-500/20 to-cyan-500/20", iconColor: "text-blue-500" },
@@ -60,7 +61,22 @@ export default function Controls() {
     const [uploading, setUploading] = useState(false);
 
     // Settings State
-    const [settingsForm, setSettingsForm] = useState({ betaEnabled: false, betaMessage: "" });
+    const [settingsForm, setSettingsForm] = useState({
+        betaEnabled: false,
+        betaMessage: "",
+        teamSectionEnabled: true,
+        buyCoffeeEnabled: true,
+        heroBadge: "Trusted by Businesses Worldwide",
+        heroTitle1: "Transform Your Digital",
+        heroTitle2: "Presence Today",
+        heroDesc: "Kodekernel delivers cutting-edge web design and development solutions that drive results. Partner with us to build exceptional digital experiences.",
+        heroStats: [
+            { value: "10+", label: "Happy Clients" },
+            { value: "20+", label: "Projects Completed" },
+            { value: "99%", label: "Client Satisfaction" },
+            { value: "24/7", label: "Support Available" }
+        ]
+    });
 
     // Style Lock State for Service Dialog
     const [isStyleLocked, setIsStyleLocked] = useState(true);
@@ -170,7 +186,26 @@ export default function Controls() {
                 const confData = await confRes.json();
                 const enabled = confData.find(c => c.configKey === "beta_enabled")?.configValue === "true";
                 const message = confData.find(c => c.configKey === "beta_message")?.configValue || "";
-                setSettingsForm({ betaEnabled: enabled, betaMessage: message });
+                const teamEnabled = confData.find(c => c.configKey === "team_section_enabled")?.configValue !== "false"; // Default true if missing
+                const coffeeEnabled = confData.find(c => c.configKey === "buy_coffee_enabled")?.configValue !== "false"; // Default true if missing
+
+                const heroBadge = confData.find(c => c.configKey === "hero_badge")?.configValue || "Trusted by Businesses Worldwide";
+                const heroTitle1 = confData.find(c => c.configKey === "hero_title1")?.configValue || "Transform Your Digital";
+                const heroTitle2 = confData.find(c => c.configKey === "hero_title2")?.configValue || "Presence Today";
+                const heroDesc = confData.find(c => c.configKey === "hero_desc")?.configValue || "Kodekernel delivers cutting-edge web design and development solutions that drive results. Partner with us to build exceptional digital experiences.";
+
+                let heroStats = [
+                    { value: "10+", label: "Happy Clients" },
+                    { value: "20+", label: "Projects Completed" },
+                    { value: "99%", label: "Client Satisfaction" },
+                    { value: "24/7", label: "Support Available" }
+                ];
+                const statsJson = confData.find(c => c.configKey === "hero_stats")?.configValue;
+                if (statsJson) {
+                    try { heroStats = JSON.parse(statsJson); } catch (e) { console.error("Failed to parse hero stats", e); }
+                }
+
+                setSettingsForm({ betaEnabled: enabled, betaMessage: message, teamSectionEnabled: teamEnabled, buyCoffeeEnabled: coffeeEnabled, heroBadge, heroTitle1, heroTitle2, heroDesc, heroStats });
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
@@ -254,10 +289,47 @@ export default function Controls() {
         }
     };
 
+    const handleUserImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        setUploading(true);
+        try {
+            const res = await fetch("http://localhost:8080/api/upload/image", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || "Upload failed");
+            }
+
+            const data = await res.json();
+            setUserForm(prev => ({ ...prev, profilePic: data.url }));
+            toast({ title: "Success", description: "Image uploaded" });
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        } finally {
+            setUploading(false);
+        }
+    };
+
     // --- User Handlers ---
     const selectUserForEdit = (u) => {
         setEditingId(u.id);
-        setUserForm({ roles: u.roles || [], displayRole: u.displayRole || "", showOnTeam: u.showOnTeam });
+        setUserForm({
+            roles: u.roles || [],
+            displayRole: u.displayRole || "",
+            showOnTeam: u.showOnTeam,
+            profilePic: u.profilePic || "",
+            bio: u.bio || ""
+        });
         setSearchQuery("");
         setShowSuggestions(false);
         setIsUserDialogOpen(true);
@@ -293,7 +365,14 @@ export default function Controls() {
         try {
             const payload = [
                 { configKey: "beta_enabled", configValue: settingsForm.betaEnabled.toString() },
-                { configKey: "beta_message", configValue: settingsForm.betaMessage }
+                { configKey: "beta_message", configValue: settingsForm.betaMessage },
+                { configKey: "team_section_enabled", configValue: settingsForm.teamSectionEnabled.toString() },
+                { configKey: "buy_coffee_enabled", configValue: settingsForm.buyCoffeeEnabled.toString() },
+                { configKey: "hero_badge", configValue: settingsForm.heroBadge },
+                { configKey: "hero_title1", configValue: settingsForm.heroTitle1 },
+                { configKey: "hero_title2", configValue: settingsForm.heroTitle2 },
+                { configKey: "hero_desc", configValue: settingsForm.heroDesc },
+                { configKey: "hero_stats", configValue: JSON.stringify(settingsForm.heroStats) }
             ];
             const res = await fetch("http://localhost:8080/api/config/batch", {
                 method: "POST",
@@ -378,7 +457,10 @@ export default function Controls() {
                                         suggestions.map(u => (
                                             <div key={u.id} className="p-3 hover:bg-primary/10 cursor-pointer border-b border-border/20 flex items-center justify-between group" onClick={() => selectUserForEdit(u)}>
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">{u.firstName?.[0]}{u.lastName?.[0]}</div>
+                                                    <Avatar className="w-8 h-8 flex-shrink-0">
+                                                        <AvatarImage src={u.profilePic} className="object-cover" />
+                                                        <AvatarFallback className="bg-primary/20 text-xs font-bold text-primary">{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
+                                                    </Avatar>
                                                     <div><div className="text-sm font-medium">{u.firstName} {u.lastName}</div><div className="text-xs text-muted-foreground">{u.email}</div></div>
                                                 </div>
                                                 <div className="text-xs text-muted-foreground group-hover:text-primary">Configure</div>
@@ -396,7 +478,10 @@ export default function Controls() {
                                 {teamMembers.map(u => (
                                     <Card key={u.id} className="bg-card border-border/50 flex flex-row items-center justify-between p-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">{u.firstName?.[0]}{u.lastName?.[0]}</div>
+                                            <Avatar className="w-10 h-10 flex-shrink-0">
+                                                <AvatarImage src={u.profilePic} className="object-cover" />
+                                                <AvatarFallback className="bg-primary/20 text-primary font-bold">{u.firstName?.[0]}{u.lastName?.[0]}</AvatarFallback>
+                                            </Avatar>
                                             <div><div className="font-semibold text-white">{u.firstName} {u.lastName}</div><div className="text-sm text-muted-foreground">{u.email}</div></div>
                                         </div>
                                         <div className="flex items-center gap-8">
@@ -540,7 +625,53 @@ export default function Controls() {
                                     />
                                     <p className="text-xs text-muted-foreground">HTML is allowed. Use <code className="bg-muted/20 px-1 rounded">&lt;a&gt;</code> tags for links.</p>
                                 </div>
+                                <div className="flex items-center justify-between p-4 border rounded-lg border-border/50 bg-background/20">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base text-white">Show Team Section</Label>
+                                        <p className="text-sm text-muted-foreground">Display the "Meet Our Team" section on the About page.</p>
+                                    </div>
+                                    <Switch checked={settingsForm.teamSectionEnabled} onCheckedChange={c => setSettingsForm({ ...settingsForm, teamSectionEnabled: c })} />
+                                </div>
+                                <div className="flex items-center justify-between p-4 border rounded-lg border-border/50 bg-background/20">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base text-white">Show "Buy us a Coffee"</Label>
+                                        <p className="text-sm text-muted-foreground">Display the donation button in the navigation bar.</p>
+                                    </div>
+                                    <Switch checked={settingsForm.buyCoffeeEnabled} onCheckedChange={c => setSettingsForm({ ...settingsForm, buyCoffeeEnabled: c })} />
+                                </div>
                                 <Button onClick={saveSettings}>Save Settings</Button>
+                            </CardContent>
+                        </Card>
+
+                        {/* HERO SECTION CONFIG */}
+                        <Card className="bg-card border-border/50">
+                            <CardHeader><CardTitle>Hero Section Configuration</CardTitle></CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2"><Label>Badge Text</Label><Input value={settingsForm.heroBadge} onChange={e => setSettingsForm({ ...settingsForm, heroBadge: e.target.value })} className="bg-background/50" /></div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2"><Label>Title Line 1</Label><Input value={settingsForm.heroTitle1} onChange={e => setSettingsForm({ ...settingsForm, heroTitle1: e.target.value })} className="bg-background/50" /></div>
+                                    <div className="space-y-2"><Label>Title Line 2 (Gradient)</Label><Input value={settingsForm.heroTitle2} onChange={e => setSettingsForm({ ...settingsForm, heroTitle2: e.target.value })} className="bg-background/50" /></div>
+                                </div>
+                                <div className="space-y-2"><Label>Description</Label><Textarea value={settingsForm.heroDesc} onChange={e => setSettingsForm({ ...settingsForm, heroDesc: e.target.value })} className="bg-background/50" /></div>
+
+                                <Label>Statistics</Label>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {settingsForm.heroStats?.map((stat, i) => (
+                                        <div key={i} className="space-y-2 border p-3 rounded-lg border-border/50 bg-background/20">
+                                            <Input value={stat.value} onChange={e => {
+                                                const newStats = [...settingsForm.heroStats];
+                                                newStats[i].value = e.target.value;
+                                                setSettingsForm({ ...settingsForm, heroStats: newStats });
+                                            }} placeholder="Value (e.g. 10+)" className="bg-background/50 mb-2" />
+                                            <Input value={stat.label} onChange={e => {
+                                                const newStats = [...settingsForm.heroStats];
+                                                newStats[i].label = e.target.value;
+                                                setSettingsForm({ ...settingsForm, heroStats: newStats });
+                                            }} placeholder="Label (e.g. Clients)" className="bg-background/50" />
+                                        </div>
+                                    ))}
+                                </div>
+                                <Button onClick={saveSettings}>Save Hero Settings</Button>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -663,6 +794,19 @@ export default function Controls() {
                 <DialogContent className="bg-card text-white border-border/50">
                     <DialogHeader><DialogTitle>Configure User</DialogTitle></DialogHeader>
                     <form onSubmit={handleUserSubmit} className="space-y-6">
+                        {/* Profile Pic Upload */}
+                        <div className="flex items-center gap-4">
+                            <div className="relative w-20 h-20 rounded-full overflow-hidden border border-border/50 bg-muted">
+                                {userForm.profilePic ? <img src={userForm.profilePic} alt="Profile" className="w-full h-full object-cover" /> : <div className="flex items-center justify-center h-full text-xs text-muted-foreground">No Pic</div>}
+                                {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 className="animate-spin w-4 h-4" /></div>}
+                            </div>
+                            <div className="flex-1 space-y-2">
+                                <Label htmlFor="user-img-upload" className="cursor-pointer bg-primary/20 hover:bg-primary/30 text-primary px-4 py-2 rounded transition inline-block text-sm">Upload Profile Picture</Label>
+                                <input id="user-img-upload" type="file" accept="image/*" className="hidden" onChange={handleUserImageUpload} />
+                                <Input value={userForm.profilePic || ""} onChange={e => setUserForm({ ...userForm, profilePic: e.target.value })} placeholder="Or Image URL" className="bg-background/50 text-xs" />
+                            </div>
+                        </div>
+
                         <div className="grid gap-2">
                             <Label className="flex justify-between items-center mb-1">
                                 System Roles

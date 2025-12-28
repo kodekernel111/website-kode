@@ -8,8 +8,43 @@ import ThreeScene from "./ThreeScene";
 
 export default function HeroSection() {
   const [scrollY, setScrollY] = useState(0);
+  const [heroConfig, setHeroConfig] = useState({
+    badge: "Trusted by Businesses Worldwide",
+    title1: "Transform Your Digital",
+    title2: "Presence Today",
+    desc: "Kodekernel delivers cutting-edge web design and development solutions that drive results. Partner with us to build exceptional digital experiences.",
+    stats: [
+      { value: "10+", label: "Happy Clients" },
+      { value: "20+", label: "Projects Completed" },
+      { value: "99%", label: "Client Satisfaction" },
+      { value: "24/7", label: "Support Available" }
+    ]
+  });
 
   useEffect(() => {
+    fetch("http://localhost:8080/api/config")
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        const badge = data.find(c => c.configKey === "hero_badge")?.configValue;
+        const title1 = data.find(c => c.configKey === "hero_title1")?.configValue;
+        const title2 = data.find(c => c.configKey === "hero_title2")?.configValue;
+        const desc = data.find(c => c.configKey === "hero_desc")?.configValue;
+        const statsJson = data.find(c => c.configKey === "hero_stats")?.configValue;
+
+        let stats = heroConfig.stats;
+        if (statsJson) { try { stats = JSON.parse(statsJson); } catch (e) { } }
+
+        setHeroConfig(prev => ({
+          ...prev,
+          badge: badge || prev.badge,
+          title1: title1 || prev.title1,
+          title2: title2 || prev.title2,
+          desc: desc || prev.desc,
+          stats: stats
+        }));
+      })
+      .catch(e => console.error(e));
+
     const handleScroll = () => {
       setScrollY(window.scrollY);
     };
@@ -59,20 +94,19 @@ export default function HeroSection() {
       >
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
           <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-          <span className="text-sm font-medium" data-testid="text-badge">Trusted by Businesses Worldwide</span>
+          <span className="text-sm font-medium" data-testid="text-badge">{heroConfig.badge}</span>
         </div>
 
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-tight" data-testid="text-hero-title">
-          Transform Your Digital
+          {heroConfig.title1}
           <br />
           <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
-            Presence Today
+            {heroConfig.title2}
           </span>
         </h1>
 
         <p className="text-xs md:text-sm text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed" data-testid="text-hero-subtitle">
-          Kodekernel delivers cutting-edge web design and development solutions
-          that drive results. Partner with us to build exceptional digital experiences.
+          {heroConfig.desc}
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -119,12 +153,7 @@ export default function HeroSection() {
         </div>
 
         <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-          {[
-            { value: "10+", label: "Happy Clients" },
-            { value: "20+", label: "Projects Completed" },
-            { value: "99%", label: "Client Satisfaction" },
-            { value: "24/7", label: "Support Available" },
-          ].map((stat, index) => (
+          {heroConfig.stats.map((stat, index) => (
             <div key={index} className="text-center" data-testid={`stat-${index}`}>
               <div className="text-3xl md:text-4xl font-bold text-primary mb-2" data-testid={`stat-value-${index}`}>
                 {stat.value}
