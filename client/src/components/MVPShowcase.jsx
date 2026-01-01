@@ -50,24 +50,37 @@ export default function MVPShowcase() {
         ...staticMvps,
         ...dbProducts.map(p => ({
             ...p,
+            category: p.category?.name || "Uncategorized",
             image: p.imageUrl || "/generated_images/SaaS_landing_page_92a46d2f.png",
             tags: p.tags || []
         }))
     ];
 
-    const categories = useMemo(() => ["All", ...Array.from(new Set(combined.map(p => p.category)))], [combined]);
+    const categories = useMemo(() => ["All", ...Array.from(new Set(combined.map(p => typeof p.category === 'string' ? p.category : p.category?.name))).filter(c => c)], [combined]);
 
     const filtered = combined.filter(p => {
         // Category
         if (filter !== "All" && p.category !== filter) return false;
 
-        // Search
+        // Deep Search (Title, Desc, Long Desc, Tags, Specs, Features, Highlights, FAQs)
         if (searchTerm) {
-            const lowerInfo = searchTerm.toLowerCase();
-            const matchTitle = p.title.toLowerCase().includes(lowerInfo);
-            const matchDesc = p.description.toLowerCase().includes(lowerInfo);
-            const matchTags = p.tags.some(t => t.toLowerCase().includes(lowerInfo));
-            if (!matchTitle && !matchDesc && !matchTags) return false;
+            const lower = searchTerm.toLowerCase();
+            const matchTitle = p.title.toLowerCase().includes(lower);
+            const matchDesc = p.description.toLowerCase().includes(lower);
+            const matchLongDesc = p.longDescription?.toLowerCase().includes(lower);
+            const matchTags = p.tags?.some(t => t.toLowerCase().includes(lower));
+            const matchSpecs = p.technicalSpecs?.some(s =>
+                s.label?.toLowerCase().includes(lower) || s.value?.toLowerCase().includes(lower)
+            );
+            const matchFeatures = p.features?.some(f => f.toLowerCase().includes(lower));
+            const matchHighlights = p.highlights?.some(h =>
+                h.title?.toLowerCase().includes(lower) || h.description?.toLowerCase().includes(lower)
+            );
+            const matchFaqs = p.faqs?.some(f =>
+                f.question?.toLowerCase().includes(lower) || f.answer?.toLowerCase().includes(lower)
+            );
+
+            if (!matchTitle && !matchDesc && !matchLongDesc && !matchTags && !matchSpecs && !matchFeatures && !matchHighlights && !matchFaqs) return false;
         }
 
         // Price
@@ -92,6 +105,21 @@ export default function MVPShowcase() {
     useEffect(() => {
         setCurrentPage(1);
     }, [filter, searchTerm, priceFilter]);
+
+    const suggestions = useMemo(() => {
+        if (!searchTerm.trim()) return [];
+        const lower = searchTerm.toLowerCase();
+        return combined.filter(p =>
+            p.title.toLowerCase().includes(lower) ||
+            p.category?.toLowerCase()?.includes(lower) ||
+            p.tags?.some(t => t.toLowerCase().includes(lower)) ||
+            p.longDescription?.toLowerCase().includes(lower) ||
+            p.technicalSpecs?.some(s => s.label?.toLowerCase().includes(lower) || s.value?.toLowerCase().includes(lower)) ||
+            p.highlights?.some(h => h.title?.toLowerCase().includes(lower))
+        ).slice(0, 5);
+    }, [searchTerm, combined]);
+
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
     const currentItems = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -124,28 +152,72 @@ export default function MVPShowcase() {
                 )}
 
                 {/* Search and Filters */}
-                <div className="flex flex-col md:flex-row gap-4 max-w-2xl mx-auto mb-8">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search products..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 bg-card border-border/50 text-white placeholder:text-muted-foreground"
-                        />
-                    </div>
-                    <Select value={priceFilter} onValueChange={setPriceFilter}>
-                        <SelectTrigger className="w-full md:w-[180px] bg-card border-border/50 text-white">
-                            <SelectValue placeholder="Price Range" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-card border-border/50 text-white">
-                            <SelectItem value="all">All Prices</SelectItem>
-                            <SelectItem value="low">Under $500</SelectItem>
-                            <SelectItem value="mid">$500 - $1000</SelectItem>
-                            <SelectItem value="high">Over $1000</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <div className="flex flex-col gap-6 max-w-4xl mx-auto mb-12">
+                    <div className="flex flex-col md:flex-row gap-4">
+                        <div className="relative flex-1 group">
+                            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                            <Input
+                                placeholder="Search products..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => setShowSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                className="pl-9 bg-card/50 backdrop-blur-md border-border/50 text-white placeholder:text-muted-foreground focus:ring-primary/20 focus:border-primary/50 transition-all rounded-xl h-11"
+                            />
 
+                            {/* Suggestions Dropdown */}
+                            {showSuggestions && suggestions.length > 0 && (
+                                <Card className="absolute top-12 left-0 right-0 z-50 bg-card/95 backdrop-blur-xl border-border/50 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="p-2">
+                                        {suggestions.map((s, i) => (
+                                            <div
+                                                key={i}
+                                                className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg cursor-pointer transition-colors group/item"
+                                                onMouseDown={() => setLocation(`/products/${s.id}`)}
+                                            >
+                                                <div className="w-10 h-10 rounded bg-black/20 overflow-hidden flex-shrink-0 border border-white/5">
+                                                    <img src={s.image} alt="" className="w-full h-full object-cover" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-sm font-semibold text-white truncate group-hover/item:text-primary transition-colors">{s.title}</div>
+                                                    <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{s.category}</div>
+                                                </div>
+                                                <div className="text-xs font-bold text-primary/80">{s.price}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </Card>
+                            )}
+                        </div>
+
+                        <Select value={priceFilter} onValueChange={setPriceFilter}>
+                            <SelectTrigger className="w-full md:w-[200px] bg-card/50 backdrop-blur-md border-border/50 text-white rounded-xl h-11">
+                                <SelectValue placeholder="Price Range" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-card/95 backdrop-blur-xl border-border/50 text-white">
+                                <SelectItem value="all">All Prices</SelectItem>
+                                <SelectItem value="low">Under $500</SelectItem>
+                                <SelectItem value="mid">$500 - $1000</SelectItem>
+                                <SelectItem value="high">Over $1000</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    {/* Quick Filter Category Pills */}
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                        {categories.map((cat) => (
+                            <button
+                                key={cat}
+                                onClick={() => setFilter(cat)}
+                                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-300 border ${filter === cat
+                                    ? "bg-primary/20 border-primary text-primary shadow-[0_0_15px_rgba(var(--primary),0.3)]"
+                                    : "bg-card/40 border-border/50 text-muted-foreground hover:border-primary/50 hover:text-white"
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
 
@@ -168,7 +240,10 @@ export default function MVPShowcase() {
                                 scale={1}
                                 className="h-full"
                             >
-                                <Card className="h-full flex flex-col glow-border relative overflow-hidden transition-all duration-300 rounded-2xl border-border/50 bg-card/40 hover:bg-card/60 hover:shadow-2xl">
+                                <Card
+                                    className="h-full flex flex-col glow-border relative overflow-hidden transition-all duration-300 rounded-2xl border-border/50 bg-card/40 hover:bg-card/60 hover:shadow-2xl cursor-pointer"
+                                    onClick={() => setLocation(`/products/${mvp.id}`)}
+                                >
                                     <div className="glow-inner" />
                                     <div className="relative aspect-[16/9] overflow-hidden rounded-t-2xl bg-black/20">
                                         <img
@@ -177,8 +252,8 @@ export default function MVPShowcase() {
                                             loading="lazy"
                                             className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                                         />
-                                        <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full border border-white/10">
-                                            {mvp.price}
+                                        <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-white text-xs font-bold px-3 py-1 rounded-full border border-white/10 uppercase tracking-wider">
+                                            {mvp.price.startsWith('$') ? mvp.price : `$${mvp.price}`}
                                         </div>
                                     </div>
 
@@ -202,17 +277,9 @@ export default function MVPShowcase() {
 
                                         <Button
                                             className="w-full gap-2 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-white border-0"
-                                            onClick={() => {
-                                                const link = mvp.buttonLink;
-                                                if (link) {
-                                                    if (link.startsWith("/")) {
-                                                        setLocation(link);
-                                                    } else if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(link)) {
-                                                        window.open(link, "_blank");
-                                                    } else {
-                                                        window.open("https://" + link, "_blank");
-                                                    }
-                                                }
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setLocation(`/products/${mvp.id}`);
                                             }}
                                         >
                                             <ShoppingCart className="w-4 h-4" />
@@ -224,6 +291,29 @@ export default function MVPShowcase() {
                         </motion.div>
                     ))}
                 </div>
+
+                {filtered.length === 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center py-20 bg-card/20 rounded-3xl border border-dashed border-border/50"
+                    >
+                        <Search className="w-16 h-16 mx-auto mb-6 text-muted-foreground/30" />
+                        <h3 className="text-2xl font-bold text-white mb-2">No products found</h3>
+                        <p className="text-muted-foreground mb-8">Try adjusting your search or filters to find what you're looking for.</p>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setSearchTerm("");
+                                setFilter("All");
+                                setPriceFilter("all");
+                            }}
+                            className="border-primary/20 text-primary hover:bg-primary/10"
+                        >
+                            Reset All Filters
+                        </Button>
+                    </motion.div>
+                )}
 
                 <div className="flex justify-center items-center gap-4 mt-12">
                     <Button

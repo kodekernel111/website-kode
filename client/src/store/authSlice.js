@@ -95,13 +95,32 @@ const getUserFromStorage = () => {
     }
 };
 
-const initialState = {
-    token: localStorage.getItem('token') || null,
-    isAuthenticated: !!localStorage.getItem('token'),
-    user: getUserFromStorage(),
-    loading: false,
-    error: null,
+const getInitialState = () => {
+    const token = localStorage.getItem('token');
+    const user = getUserFromStorage();
+    let isAuthenticated = !!token;
+
+    if (token) {
+        const decoded = decodeToken(token);
+        const currentTime = Date.now() / 1000;
+        if (decoded && decoded.exp && decoded.exp < currentTime) {
+            isAuthenticated = false;
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+        }
+    }
+
+    return {
+        token: isAuthenticated ? token : null,
+        isAuthenticated,
+        user: isAuthenticated ? user : null,
+        loading: false,
+        error: null,
+    };
 };
+
+const initialState = getInitialState();
 
 const authSlice = createSlice({
     name: 'auth',

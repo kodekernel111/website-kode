@@ -1,21 +1,19 @@
-import { useEffect } from "react";
-import { useLocation } from "wouter";
-import { useToast } from "@/hooks/use-toast";
-import Footer from "@/components/Footer";
+import { useDispatch } from "react-redux";
+import { logout } from "@/store/authSlice";
 
 export default function Logout() {
     const [, setLocation] = useLocation();
     const { toast } = useToast();
+    const dispatch = useDispatch();
 
     useEffect(() => {
-        localStorage.removeItem("isLoggedIn");
-        window.dispatchEvent(new Event("authChange"));
+        dispatch(logout()); // Clear Redux state and localStorage
         toast({
             title: "Logged out",
             description: "You have been logged out successfully.",
         });
-        setLocation("/");
-    }, [setLocation, toast]);
+        setLocation("/login"); // Redirect to Login page
+    }, [setLocation, toast, dispatch]);
 
     return (
         <div className="pt-24 min-h-screen bg-background flex flex-col justify-between">

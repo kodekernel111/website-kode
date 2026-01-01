@@ -8,15 +8,15 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 const faqs = [
   {
     keywords: ["price", "pricing", "cost", "how much"],
-    response: "We offer three pricing tiers: Starter ($999), Professional ($2,499), and Enterprise (custom pricing). Each plan includes different features and support levels. Would you like to know more about a specific plan?"
+    response: "We offer three flexible tiers: Starter ($999 for foundational projects), Professional ($2,499 for growing businesses with CMS integration), and Enterprise (Custom solutions for elite scale). All plans include dedicated support and premium delivery."
   },
   {
     keywords: ["service", "services", "what do you do", "offer"],
-    response: "We offer Web Development, UI/UX Design, Mobile Apps, SaaS Solutions, SEO Optimization, and Analytics & Insights. Which service are you interested in?"
+    response: "We specialize in high-end Web Development (React/Next.js/Spring Boot), UI/UX Design (Figma/Prototyping), Mobile Apps, and AI Integrations. We also sell production-ready source codes in our Store!"
   },
   {
     keywords: ["contact", "reach", "email", "phone"],
-  response: "You can reach us at contact@kodekernel.com or call us at +1 (555) 123-4567. Our office is located at 123 Tech Street, San Francisco, CA 94105."
+    response: "You can reach us at contact@kodekernel.com or visit our Contact page to get in touch. We typically respond to all inquiries within 24 hours!"
   },
   {
     keywords: ["timeline", "how long", "duration", "time"],
@@ -36,12 +36,17 @@ const faqs = [
   },
   {
     keywords: ["technology", "tech stack", "technologies"],
-    response: "We work with modern technologies including React, Next.js, Node.js, TypeScript, PostgreSQL, and cloud platforms. We choose the best tech stack for each project's specific needs."
+    response: "Our core stack is built for scale: Frontend (React, Next.js, Framer Motion), Backend (Spring Boot, Node.js), and Database (PostgreSQL). We focus on typing (TypeScript) and clean architecture."
   },
+  {
+    keywords: ["who are you", "what is this", "kodekernel"],
+    response: "I am the Kodekernel Assistant! Kodekernel is a premium digital agency and software store where you can buy high-quality source code for MVPs or hire us to build custom solutions from scratch."
+  }
 ];
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -51,7 +56,23 @@ export default function Chatbot() {
     }
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [products, setProducts] = useState([]);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/products")
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setProducts(data))
+      .catch(err => console.error("Error fetching products for chatbot:", err));
+
+    fetch("http://localhost:8080/api/config")
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        const val = data.find(c => c.configKey === "chatbot_enabled")?.configValue;
+        setIsVisible(val !== "false");
+      })
+      .catch(e => console.error("Error fetching chatbot config:", e));
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -63,22 +84,50 @@ export default function Chatbot() {
 
   const findResponse = (input) => {
     const lowerInput = input.toLowerCase();
-    
+
+    // 1. Check for specific product mentions
+    if (lowerInput.includes("product") || lowerInput.includes("buy") || lowerInput.includes("source code") || lowerInput.includes("what do you have")) {
+      const foundProducts = products.filter(p =>
+        p.title.toLowerCase().includes(lowerInput) ||
+        p.description.toLowerCase().includes(lowerInput) ||
+        p.category?.name?.toLowerCase().includes(lowerInput)
+      ).slice(0, 3);
+
+      if (foundProducts.length > 0) {
+        let resp = "I found some products that might interest you:\n\n";
+        foundProducts.forEach(p => {
+          resp += `• ${p.title} (${p.price})\n`;
+        });
+        resp += "\nYou can find these and more in our Projects section!";
+        return resp;
+      }
+    }
+
+    // 2. Exact match check for faqs
     for (const faq of faqs) {
       if (faq.keywords.some(keyword => lowerInput.includes(keyword))) {
         return faq.response;
       }
     }
-    
-    return "I'm here to help! You can ask me about our services, pricing, contact information, project timelines, or how to get started. What would you like to know?";
+
+    // 3. Category search
+    const categories = Array.from(new Set(products.map(p => p.category?.name).filter(Boolean)));
+    const matchedCategory = categories.find(cat => lowerInput.includes(cat.toLowerCase()));
+    if (matchedCategory) {
+      const catProducts = products.filter(p => p.category?.name === matchedCategory).slice(0, 3);
+      return `We have several products in the ${matchedCategory} category, including ${catProducts.map(p => p.title).join(", ")}. You can see the full list in our store!`;
+    }
+
+    return "I'm here to help! You can ask me about our specific products, available source codes, pricing, contact information, or our tech stack. What would you like to know?";
   };
 
-  const handleSend = () => {
-    if (!inputValue.trim()) return;
+  const handleSend = (text) => {
+    const messageText = typeof text === "string" ? text : inputValue;
+    if (!messageText.trim()) return;
 
     const userMessage = {
       id: messages.length + 1,
-      text: inputValue,
+      text: messageText,
       isBot: false,
       timestamp: new Date(),
     };
@@ -89,7 +138,7 @@ export default function Chatbot() {
     setTimeout(() => {
       const botResponse = {
         id: messages.length + 2,
-        text: findResponse(inputValue),
+        text: findResponse(messageText),
         isBot: true,
         timestamp: new Date(),
       };
@@ -97,11 +146,17 @@ export default function Chatbot() {
     }, 500);
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleSend();
-    }
-  };
+  const quickActions = [
+    "What products do you have?",
+    "Show me pricing plans",
+    "How do I get started?",
+    "View tech stack",
+    "Contact information"
+  ];
+
+  const dynamicCategories = Array.from(new Set(products.map(p => p.category?.name).filter(Boolean))).slice(0, 3);
+
+  if (!isVisible) return null;
 
   return (
     <>
@@ -149,11 +204,10 @@ export default function Chatbot() {
                   data-testid={`message-${message.id}`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.isBot
-                        ? "bg-muted text-foreground"
-                        : "bg-primary text-primary-foreground"
-                    }`}
+                    className={`max-w-[80%] rounded-lg p-3 ${message.isBot
+                      ? "bg-muted text-foreground"
+                      : "bg-primary text-primary-foreground"
+                      }`}
                   >
                     <p className="text-sm">{message.text}</p>
                     <p className="text-xs opacity-70 mt-1">
@@ -165,22 +219,27 @@ export default function Chatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Ask me anything..."
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  data-testid="input-chat-message"
-                />
-                <Button
-                  size="icon"
-                  onClick={handleSend}
-                  data-testid="button-send-message"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+            <div className="p-4 border-t bg-muted/20">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-3 px-1">Suggested Questions</p>
+              <div className="flex flex-wrap gap-2">
+                {quickActions.map((action, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSend(action)}
+                    className="text-[11px] bg-background border border-border hover:border-primary hover:text-primary px-3 py-1.5 rounded-full transition-all duration-200 text-left"
+                  >
+                    {action}
+                  </button>
+                ))}
+                {dynamicCategories.map((cat, i) => (
+                  <button
+                    key={`cat-${i}`}
+                    onClick={() => handleSend(`Show me ${cat} products`)}
+                    className="text-[11px] bg-background border border-primary/20 text-primary/80 hover:bg-primary/10 px-3 py-1.5 rounded-full transition-all duration-200"
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             </div>
           </Card>

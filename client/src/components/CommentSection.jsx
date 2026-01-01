@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 
-const CommentItem = ({ comment, postId, token, isAuthenticated, onDelete, onReplySuccess }) => {
+const CommentItem = ({ comment, postId, token, isAuthenticated, user, onDelete, onReplySuccess }) => {
     const [isReplying, setIsReplying] = useState(false);
     const [areRepliesOpen, setAreRepliesOpen] = useState(false);
     const [replyContent, setReplyContent] = useState("");
@@ -57,7 +57,7 @@ const CommentItem = ({ comment, postId, token, isAuthenticated, onDelete, onRepl
                                 {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
                             </span>
                         </div>
-                        {comment.isOwner && (
+                        {(comment.isOwner || user?.roles?.includes('ADMIN')) && (
                             <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onDelete(comment.id)}>
                                 <Trash2 className="w-3 h-3" />
                             </Button>
@@ -117,7 +117,7 @@ const CommentItem = ({ comment, postId, token, isAuthenticated, onDelete, onRepl
 
                             <div className="pl-6 border-l-2 border-primary/30 space-y-3 mt-2">
                                 {comment.replies.map(reply => (
-                                    <CommentItem key={reply.id} comment={reply} postId={postId} token={token} isAuthenticated={isAuthenticated} onDelete={onDelete} onReplySuccess={onReplySuccess} />
+                                    <CommentItem key={reply.id} comment={reply} postId={postId} token={token} isAuthenticated={isAuthenticated} user={user} onDelete={onDelete} onReplySuccess={onReplySuccess} />
                                 ))}
 
                                 <button
@@ -144,6 +144,11 @@ export default function CommentSection({ postId }) {
 
     const { user, token, isAuthenticated } = useSelector((state) => state.auth);
     const { toast } = useToast();
+
+    const getInitials = (firstName, lastName) => {
+        if (!firstName) return "??";
+        return `${firstName[0]}${lastName ? lastName[0] : ""}`.toUpperCase();
+    };
 
     const refreshComments = () => {
         fetchComments(0);
@@ -219,7 +224,10 @@ export default function CommentSection({ postId }) {
                 headers: { "Authorization": `Bearer ${token}` }
             });
 
-            if (!response.ok) throw new Error("Failed to delete comment.");
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || "Failed to delete comment.");
+            }
 
             const deleteRecursive = (list) => {
                 return list.filter(c => c.id !== commentId).map(c => ({
@@ -250,7 +258,9 @@ export default function CommentSection({ postId }) {
                         <div className="flex gap-4">
                             <Avatar className="w-10 h-10 border border-border">
                                 <AvatarImage src={user?.profilePic} className="object-cover" />
-                                <AvatarFallback className="bg-primary/20 text-primary font-bold">ME</AvatarFallback>
+                                <AvatarFallback className="bg-primary/20 text-primary font-bold">
+                                    {getInitials(user?.firstName, user?.lastName)}
+                                </AvatarFallback>
                             </Avatar>
                             <div className="flex-1">
                                 <Textarea
@@ -286,6 +296,7 @@ export default function CommentSection({ postId }) {
                         postId={postId}
                         token={token}
                         isAuthenticated={isAuthenticated}
+                        user={user}
                         onDelete={handleDelete}
                         onReplySuccess={refreshComments}
                     />

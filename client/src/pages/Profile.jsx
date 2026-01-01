@@ -123,8 +123,19 @@ export default function Profile() {
         return null;
     }
 
-    // Country code to phone mapping (simplified for brevity or reused)
-    const renderPhone = () => user.phone || "Not provided";
+    const DIAL_CODES = {
+        IN: "+91", US: "+1", UK: "+44", CA: "+1", AU: "+61",
+        DE: "+49", FR: "+33", IT: "+39", ES: "+34", JP: "+81",
+        CN: "+86", BR: "+55", RU: "+7", KR: "+82", SG: "+65",
+        UAE: "+971", SA: "+966", ZA: "+27", NG: "+234"
+    };
+
+    const renderPhone = () => {
+        if (!user.phone) return "Not provided";
+        if (user.phone.startsWith("+")) return user.phone;
+        const code = DIAL_CODES[user.country?.toUpperCase()];
+        return code ? `${code} ${user.phone}` : user.phone;
+    };
 
     const userDetails = [
         { icon: <Mail className="w-5 h-5 text-primary" />, label: "Email", value: user.sub || user.email },

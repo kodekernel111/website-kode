@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import MDEditor from "@uiw/react-md-editor";
 import {
     Plus, Trash2, Edit2, Star, User as UserIcon, Search, Loader2, X,
     Code, Palette, Smartphone, Rocket, BarChart, Upload
@@ -18,6 +19,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import * as LucideIcons from "lucide-react";
+
+const HIGHLIGHT_ICONS = ["Zap", "ShieldCheck", "Globe", "Cpu", "Layers", "Code2", "Smartphone", "Activity", "Database", "Search", "Rocket", "BarChart", "MessagesSquare", "Star", "Palette"];
 
 const ICON_STYLES = {
     Code: { gradient: "from-blue-500/20 to-cyan-500/20", iconColor: "text-blue-500" },
@@ -41,6 +45,7 @@ export default function Controls() {
     const [services, setServices] = useState([]);
     const [testimonials, setTestimonials] = useState([]);
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [availableRoles, setAvailableRoles] = useState([]);
 
     // User Management States
@@ -58,7 +63,9 @@ export default function Controls() {
     const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
     const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false);
     const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
+    const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [cursorPos, setCursorPos] = useState(null);
 
     // Settings State
     const [settingsForm, setSettingsForm] = useState({
@@ -66,6 +73,7 @@ export default function Controls() {
         betaMessage: "",
         teamSectionEnabled: true,
         buyCoffeeEnabled: true,
+        chatbotEnabled: true,
         heroBadge: "Trusted by Businesses Worldwide",
         heroTitle1: "Transform Your Digital",
         heroTitle2: "Presence Today",
@@ -93,8 +101,13 @@ export default function Controls() {
         name: "", role: "", content: "", rating: 5, displayOrder: 1
     });
     const [productForm, setProductForm] = useState({
-        title: "", price: "", category: "SaaS", description: "", tags: "", imageUrl: ""
+        title: "", price: "", categoryId: "", description: "", longDescription: "", features: "", specs: "", tags: "", imageUrl: "", buttonText: "Buy Source Code", buttonLink: "",
+        highlights: "", faqs: "", supportTitle: "Priority Support", supportDescription: "", supportButtonText: "Contact Engineer", supportButtonLink: "/contact",
+        showDeliveryBadge: true,
+        betaBannerEnabled: false,
+        betaBannerMessage: ""
     });
+    const [categoryForm, setCategoryForm] = useState({ name: "" });
     const [userForm, setUserForm] = useState({
         roles: ["USER"], displayRole: "", showOnTeam: false
     });
@@ -104,6 +117,7 @@ export default function Controls() {
         if (!isAuthenticated || !isAdmin) return;
         fetchData();
         fetchRoles();
+        fetchCategories();
         fetchTeamMembers();
     }, [isAuthenticated, user, token, isAdmin]);
 
@@ -167,6 +181,15 @@ export default function Controls() {
         }
     };
 
+    const fetchCategories = async () => {
+        try {
+            const res = await fetch("http://localhost:8080/api/product-categories");
+            if (res.ok) setCategories(await res.json());
+        } catch (error) {
+            console.error("Failed to fetch categories", error);
+        }
+    };
+
     const fetchData = async () => {
         try {
             const [plansRes, servicesRes, testimonialsRes, productsRes] = await Promise.all([
@@ -188,6 +211,7 @@ export default function Controls() {
                 const message = confData.find(c => c.configKey === "beta_message")?.configValue || "";
                 const teamEnabled = confData.find(c => c.configKey === "team_section_enabled")?.configValue !== "false"; // Default true if missing
                 const coffeeEnabled = confData.find(c => c.configKey === "buy_coffee_enabled")?.configValue !== "false"; // Default true if missing
+                const chatbotEnabled = confData.find(c => c.configKey === "chatbot_enabled")?.configValue !== "false"; // Default true if missing
 
                 const heroBadge = confData.find(c => c.configKey === "hero_badge")?.configValue || "Trusted by Businesses Worldwide";
                 const heroTitle1 = confData.find(c => c.configKey === "hero_title1")?.configValue || "Transform Your Digital";
@@ -205,7 +229,18 @@ export default function Controls() {
                     try { heroStats = JSON.parse(statsJson); } catch (e) { console.error("Failed to parse hero stats", e); }
                 }
 
-                setSettingsForm({ betaEnabled: enabled, betaMessage: message, teamSectionEnabled: teamEnabled, buyCoffeeEnabled: coffeeEnabled, heroBadge, heroTitle1, heroTitle2, heroDesc, heroStats });
+                setSettingsForm({
+                    betaEnabled: enabled,
+                    betaMessage: message,
+                    teamSectionEnabled: teamEnabled,
+                    buyCoffeeEnabled: coffeeEnabled,
+                    chatbotEnabled: chatbotEnabled,
+                    heroBadge,
+                    heroTitle1,
+                    heroTitle2,
+                    heroDesc,
+                    heroStats
+                });
             }
         } catch (error) {
             toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
@@ -250,12 +285,100 @@ export default function Controls() {
     const openProductDialog = (p = null) => {
         setEditingId(p?.id);
         const defaultText = "Buy Source Code";
-        setProductForm(p ? { ...p, tags: p.tags.join(", "), buttonText: p.buttonText || defaultText, buttonLink: p.buttonLink || "" } : { title: "", price: "", category: "SaaS", description: "", tags: "", imageUrl: "", buttonText: defaultText, buttonLink: "" });
+
+        // Convert strings/collections
+        const specsStr = p?.specs ? Object.entries(p.specs).map(([k, v]) => `${k}:${v}`).join("\n") : "";
+        const highlightsStr = p?.highlights ? p.highlights.map(h => `${h.icon}|${h.title}|${h.description}`).join("\n") : "";
+        const faqsStr = p?.faqs ? p.faqs.map(f => `${f.question}|${f.answer}`).join("\n") : "";
+
+        setProductForm(p ? {
+            ...p,
+            categoryId: p.category?.id || "",
+            tags: p.tags?.join(", ") || "",
+            features: p.features?.join("\n") || "",
+            specs: specsStr,
+            highlights: highlightsStr,
+            faqs: faqsStr,
+            supportTitle: p.supportTitle || "Priority Support",
+            supportDescription: p.supportDescription || "",
+            supportButtonText: p.supportButtonText || "Contact Engineer",
+            supportButtonLink: p.supportButtonLink || "/contact",
+            buttonText: p.buttonText || defaultText,
+            buttonLink: p.buttonLink || "",
+            showDeliveryBadge: p.showDeliveryBadge ?? true,
+            betaBannerEnabled: p.betaBannerEnabled || false,
+            betaBannerMessage: p.betaBannerMessage || ""
+        } : {
+            title: "", price: "", categoryId: categories[0]?.id || "", description: "", longDescription: "",
+            features: "", specs: "", tags: "", imageUrl: "",
+            highlights: "", faqs: "", supportTitle: "Priority Support", supportDescription: "",
+            supportButtonText: "Contact Engineer", supportButtonLink: "/contact",
+            buttonText: defaultText, buttonLink: "",
+            showDeliveryBadge: true,
+            betaBannerEnabled: false,
+            betaBannerMessage: ""
+        });
         setIsProductDialogOpen(true);
     };
+
+    const openCategoryDialog = (c = null) => {
+        setEditingId(c?.id);
+        setCategoryForm(c ? { name: c.name } : { name: "" });
+        setIsCategoryDialogOpen(true);
+    };
+
+    const handleCategorySubmit = async (e) => {
+        e.preventDefault();
+        await submitData("product-categories", editingId, categoryForm, setIsCategoryDialogOpen);
+        fetchCategories();
+    };
+
     const handleProductSubmit = async (e) => {
         e.preventDefault();
-        await submitData("products", editingId, { ...productForm, tags: productForm.tags.split(",").map(t => t.trim()).filter(t => t) }, setIsProductDialogOpen);
+        if (!productForm.categoryId) {
+            toast({ title: "Validation Error", description: "Please select a category.", variant: "destructive" });
+            return;
+        }
+        try {
+            // Convert specs string back to map
+            const specsMap = {};
+            (productForm.specs || "").split("\n").forEach(line => {
+                const parts = line.split(":");
+                if (parts.length >= 2) {
+                    const k = parts[0].trim();
+                    const v = parts.slice(1).join(":").trim();
+                    if (k && v) specsMap[k] = v;
+                }
+            });
+
+            const highlightsArr = (productForm.highlights || "").split("\n").map(line => {
+                const [icon, title, ...descParts] = line.split("|");
+                const description = descParts.join("|")?.trim() || "";
+                return (icon?.trim() && title?.trim()) ? { icon: icon.trim(), title: title.trim(), description } : null;
+            }).filter(h => h);
+
+            const faqsArr = (productForm.faqs || "").split("\n").map(line => {
+                const [question, answer] = line.split("|");
+                return (question?.trim() && answer?.trim()) ? { question: question.trim(), answer: answer.trim() } : null;
+            }).filter(f => f);
+
+            const payload = {
+                ...productForm,
+                category: { id: productForm.categoryId },
+                tags: (productForm.tags || "").split(",").map(t => t.trim()).filter(t => t),
+                features: (productForm.features || "").split("\n").map(f => f.trim()).filter(f => f),
+                specs: specsMap,
+                highlights: highlightsArr,
+                faqs: faqsArr
+            };
+
+            console.log("Submitting Product Payload:", payload);
+
+            await submitData("products", editingId, payload, setIsProductDialogOpen);
+        } catch (err) {
+            console.error("Form Processing Error:", err);
+            toast({ title: "Form Error", description: "There was an error processing your product data. Check console.", variant: "destructive" });
+        }
     };
 
     const handleImageUpload = async (e) => {
@@ -320,6 +443,45 @@ export default function Controls() {
         }
     };
 
+    const handleMarkdownImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        setUploading(true);
+        try {
+            const res = await fetch("http://localhost:8080/api/upload/image", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || "Upload failed");
+            }
+
+            const data = await res.json();
+            const imageMarkdown = `\n![Image](${data.url})\n`;
+
+            setProductForm(prev => {
+                const currentContent = prev.longDescription || "";
+                const insertAt = cursorPos || currentContent.length;
+                const newContent = currentContent.slice(0, insertAt) + imageMarkdown + currentContent.slice(insertAt);
+                return { ...prev, longDescription: newContent };
+            });
+
+            toast({ title: "Success", description: "Image added to editor" });
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        } finally {
+            setUploading(false);
+        }
+    };
+
     // --- User Handlers ---
     const selectUserForEdit = (u) => {
         setEditingId(u.id);
@@ -368,6 +530,7 @@ export default function Controls() {
                 { configKey: "beta_message", configValue: settingsForm.betaMessage },
                 { configKey: "team_section_enabled", configValue: settingsForm.teamSectionEnabled.toString() },
                 { configKey: "buy_coffee_enabled", configValue: settingsForm.buyCoffeeEnabled.toString() },
+                { configKey: "chatbot_enabled", configValue: settingsForm.chatbotEnabled.toString() },
                 { configKey: "hero_badge", configValue: settingsForm.heroBadge },
                 { configKey: "hero_title1", configValue: settingsForm.heroTitle1 },
                 { configKey: "hero_title2", configValue: settingsForm.heroTitle2 },
@@ -424,6 +587,7 @@ export default function Controls() {
                         <TabsTrigger value="plans">Pricing Plans</TabsTrigger>
                         <TabsTrigger value="services">Services</TabsTrigger>
                         <TabsTrigger value="products">Store Products</TabsTrigger>
+                        <TabsTrigger value="categories">Product Categories</TabsTrigger>
                         <TabsTrigger value="testimonials">Testimonials</TabsTrigger>
                         <TabsTrigger value="settings">Settings</TabsTrigger>
                     </TabsList>
@@ -592,12 +756,32 @@ export default function Controls() {
                                     </CardHeader>
                                     <CardContent className="flex-1 flex flex-col justify-between">
                                         <div className="mb-4">
-                                            <div className="text-xs text-muted-foreground mb-2 px-2 py-1 bg-primary/10 rounded w-fit">{p.category}</div>
+                                            <div className="text-xs text-muted-foreground mb-2 px-2 py-1 bg-primary/10 rounded w-fit">{p.category?.name || "Uncategorized"}</div>
                                             <p className="text-sm text-muted-foreground line-clamp-3">{p.description}</p>
                                         </div>
                                         <div className="flex gap-2 mt-auto">
                                             <Button size="sm" variant="outline" className="flex-1" onClick={() => openProductDialog(p)}><Edit2 className="w-4 h-4 mr-2" /> Edit</Button>
                                             <Button size="sm" variant="destructive" onClick={() => deleteData('products', p.id)}><Trash2 className="w-4 h-4" /></Button>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    </TabsContent>
+
+                    {/* CATEGORIES */}
+                    <TabsContent value="categories" className="space-y-4">
+                        <div className="flex justify-end"><Button onClick={() => openCategoryDialog()} className="gap-2"><Plus className="w-4 h-4" /> Add Category</Button></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {categories.map(c => (
+                                <Card key={c.id} className="bg-card border-border/50">
+                                    <CardContent className="pt-6">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium text-white">{c.name}</span>
+                                            <div className="flex gap-1">
+                                                <Button size="sm" variant="ghost" onClick={() => openCategoryDialog(c)}><Edit2 className="w-3 h-3" /></Button>
+                                                <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => deleteData('product-categories', c.id)}><Trash2 className="w-3 h-3" /></Button>
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -638,6 +822,13 @@ export default function Controls() {
                                         <p className="text-sm text-muted-foreground">Display the donation button in the navigation bar.</p>
                                     </div>
                                     <Switch checked={settingsForm.buyCoffeeEnabled} onCheckedChange={c => setSettingsForm({ ...settingsForm, buyCoffeeEnabled: c })} />
+                                </div>
+                                <div className="flex items-center justify-between p-4 border rounded-lg border-border/50 bg-background/20">
+                                    <div className="space-y-0.5">
+                                        <Label className="text-base text-white">Enable Kodekernel Assistant</Label>
+                                        <p className="text-sm text-muted-foreground">Display the interactive chatbot on the bottom right.</p>
+                                    </div>
+                                    <Switch checked={settingsForm.chatbotEnabled} onCheckedChange={c => setSettingsForm({ ...settingsForm, chatbotEnabled: c })} />
                                 </div>
                                 <Button onClick={saveSettings}>Save Settings</Button>
                             </CardContent>
@@ -680,7 +871,7 @@ export default function Controls() {
 
             {/* Dialogs reused from logic... (Plan, Service, Testimonial, User) */}
             <Dialog open={isPlanDialogOpen} onOpenChange={setIsPlanDialogOpen}>
-                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto" data-lenis-prevent>
                     <DialogHeader><DialogTitle>Plan</DialogTitle></DialogHeader>
                     <form onSubmit={handlePlanSubmit} className="space-y-4">
                         <Input value={planForm.name} onChange={e => setPlanForm({ ...planForm, name: e.target.value })} placeholder="Name" className="bg-background/50" />
@@ -694,7 +885,7 @@ export default function Controls() {
                 </DialogContent>
             </Dialog>
             <Dialog open={isServiceDialogOpen} onOpenChange={setIsServiceDialogOpen}>
-                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto" data-lenis-prevent>
                     <DialogHeader><DialogTitle>Service</DialogTitle></DialogHeader>
                     <form onSubmit={handleServiceSubmit} className="space-y-4">
                         <Input value={serviceForm.title} onChange={e => setServiceForm({ ...serviceForm, title: e.target.value })} placeholder="Title" className="bg-background/50" />
@@ -745,7 +936,7 @@ export default function Controls() {
                 </DialogContent>
             </Dialog>
             <Dialog open={isTestimonialDialogOpen} onOpenChange={setIsTestimonialDialogOpen}>
-                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto" data-lenis-prevent>
                     <DialogHeader><DialogTitle>Testimonial</DialogTitle></DialogHeader>
                     <form onSubmit={handleTestimonialSubmit} className="space-y-4">
                         <Input value={testimonialForm.name} onChange={e => setTestimonialForm({ ...testimonialForm, name: e.target.value })} placeholder="Name" className="bg-background/50" />
@@ -759,39 +950,378 @@ export default function Controls() {
 
             {/* Product Dialog */}
             <Dialog open={isProductDialogOpen} onOpenChange={setIsProductDialogOpen}>
-                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto">
-                    <DialogHeader><DialogTitle>Product</DialogTitle></DialogHeader>
-                    <form onSubmit={handleProductSubmit} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="aspect-video bg-muted rounded relative overflow-hidden flex items-center justify-center border border-border/50">
-                                {productForm.imageUrl ? <img src={productForm.imageUrl} alt="preview" className="w-full h-full object-cover" /> : <span className="text-muted-foreground text-xs">No Image</span>}
-                                {uploading && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Loader2 className="animate-spin" /></div>}
+                <DialogContent className="bg-card text-white border-border/50 max-h-[90vh] overflow-y-auto w-full max-w-5xl" data-lenis-prevent>
+                    <DialogHeader><DialogTitle>Advanced Product Lifecycle Configuration</DialogTitle></DialogHeader>
+                    <form onSubmit={handleProductSubmit} className="space-y-10">
+                        {/* Section 1: Visual & Core */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Visual & Core Registry</h3>
                             </div>
-                            <div className="flex flex-col gap-2 justify-center">
-                                <Label htmlFor="prod-img" className="cursor-pointer bg-primary/20 hover:bg-primary/30 text-primary text-center py-2 rounded transition">Upload Image</Label>
-                                <input id="prod-img" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                                <Input value={productForm.imageUrl} onChange={e => setProductForm({ ...productForm, imageUrl: e.target.value })} placeholder="Or Image URL" className="bg-background/50 text-xs" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <div className="aspect-video bg-muted rounded-xl relative overflow-hidden flex items-center justify-center border border-border/50 shadow-inner group">
+                                        {productForm.imageUrl ? <img src={productForm.imageUrl} alt="preview" className="w-full h-full object-cover" /> : <span className="text-muted-foreground text-xs italic">Asset Preview Missing</span>}
+                                        {uploading && <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>}
+                                    </div>
+                                    <div className="flex flex-col gap-2">
+                                        <Label htmlFor="prod-img" className="cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary text-center py-2.5 rounded-lg transition-all font-semibold border border-primary/20">Upload Lead Asset</Label>
+                                        <input id="prod-img" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                        <Input value={productForm.imageUrl} onChange={e => setProductForm({ ...productForm, imageUrl: e.target.value })} placeholder="Asset URL Reference" className="bg-background/50 text-xs border-border/30" />
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <Input value={productForm.title} onChange={e => setProductForm({ ...productForm, title: e.target.value })} placeholder="Architectural Designation (Title)" className="bg-background/50 font-bold" />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1.5"><Label className="text-[10px] uppercase font-bold text-muted-foreground">Price Unit</Label><Input value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="e.g. 499" className="bg-background/50 font-mono" /></div>
+                                        <div className="space-y-1.5">
+                                            <Label className="text-[10px] uppercase font-bold text-muted-foreground">Registry Class</Label>
+                                            <Select value={productForm.categoryId} onValueChange={v => setProductForm({ ...productForm, categoryId: v })}>
+                                                <SelectTrigger className="bg-background/50 border-border/30 h-10">
+                                                    <SelectValue placeholder="Select Category" />
+                                                </SelectTrigger>
+                                                <SelectContent className="bg-card border-border text-white">
+                                                    {categories.map(cat => (
+                                                        <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5"><Label className="text-[10px] uppercase font-bold text-muted-foreground">Product Brief / Quote</Label><Textarea value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} placeholder="Example: A robust, pre-engineered foundation for your next high-scale venture." className="bg-background/50 min-h-[60px]" /></div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Metadata Tags</Label>
+                                        <div className="flex flex-wrap gap-1.5 p-2.5 border border-border/30 rounded-xl bg-background/30 min-h-[44px] content-start">
+                                            {(productForm.tags || "").split(",").filter(t => t.trim()).map((t, i, arr) => (
+                                                <div key={i} className="flex items-center gap-1.5 px-2 py-0.5 bg-muted border border-border/50 rounded text-[9px] font-bold text-muted-foreground hover:text-white transition-colors group">
+                                                    {t.trim()}
+                                                    <button
+                                                        type="button"
+                                                        className="text-muted-foreground/50 hover:text-destructive transition-colors"
+                                                        onClick={() => {
+                                                            const newTags = arr.filter((_, idx) => idx !== i).join(", ");
+                                                            setProductForm({ ...productForm, tags: newTags });
+                                                        }}
+                                                    >
+                                                        <LucideIcons.X className="w-2.5 h-2.5" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <Input
+                                                placeholder="+ Tag"
+                                                className="h-5 text-[10px] bg-transparent border-none focus-visible:ring-0 p-0 w-16"
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        const val = e.target.value.trim().replace(/,/g, '');
+                                                        if (val) {
+                                                            const current = (productForm.tags || "").split(",").filter(t => t.trim());
+                                                            setProductForm({ ...productForm, tags: [...current, val].join(", ") });
+                                                            e.target.value = "";
+                                                        }
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <Input value={productForm.title} onChange={e => setProductForm({ ...productForm, title: e.target.value })} placeholder="Title" className="bg-background/50" />
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} placeholder="Price" className="bg-background/50" />
-                            <Input value={productForm.category} onChange={e => setProductForm({ ...productForm, category: e.target.value })} placeholder="Category" className="bg-background/50" />
+
+                        {/* Section 2: Technical Specs & Roadmap */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Technical Specs & Documentation</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-1.5">
+                                    <div className="flex justify-between items-center">
+                                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Longform Architecture (Markdown)</Label>
+                                        <div className="flex items-center gap-2">
+                                            <Label htmlFor="md-img-upload" className="cursor-pointer text-[10px] bg-primary/20 hover:bg-primary/30 text-primary px-2 py-1 rounded transition flex items-center gap-1">
+                                                <LucideIcons.Image className="w-3 h-3" /> Insert Image
+                                            </Label>
+                                            <input id="md-img-upload" type="file" accept="image/*" className="hidden" onChange={handleMarkdownImageUpload} />
+                                        </div>
+                                    </div>
+                                    <div data-color-mode="dark" className="mt-2">
+                                        <MDEditor
+                                            value={productForm.longDescription}
+                                            onChange={val => setProductForm({ ...productForm, longDescription: val })}
+                                            preview="edit"
+                                            height={350}
+                                            className="!bg-background/20 !border-border/50 rounded-xl overflow-hidden"
+                                            textareaProps={{
+                                                placeholder: "Enter markdown description...",
+                                                onBlur: (e) => setCursorPos(e.target.selectionStart),
+                                                onKeyUp: (e) => setCursorPos(e.target.selectionStart),
+                                                onClick: (e) => setCursorPos(e.target.selectionStart)
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">Included Features</Label>
+                                        <div className="flex flex-wrap gap-2 p-3 border border-border/30 rounded-xl bg-background/30 min-h-[100px] content-start">
+                                            {(productForm.features || "").split("\n").filter(f => f.trim()).map((f, i, arr) => (
+                                                <div key={i} className="flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/20 rounded-full text-[10px] font-bold text-primary group">
+                                                    {f}
+                                                    <button
+                                                        type="button"
+                                                        className="text-primary/50 hover:text-primary"
+                                                        onClick={() => {
+                                                            const newArr = arr.filter((_, idx) => idx !== i);
+                                                            setProductForm({ ...productForm, features: newArr.join("\n") });
+                                                        }}
+                                                    >
+                                                        <LucideIcons.X className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <div className="flex-1 min-w-[120px]">
+                                                <Input
+                                                    placeholder="+ New Feature"
+                                                    className="h-7 text-[10px] bg-transparent border-none focus-visible:ring-0 p-0"
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') {
+                                                            e.preventDefault();
+                                                            const val = e.target.value.trim();
+                                                            if (val) {
+                                                                const current = (productForm.features || "").split("\n").filter(f => f.trim());
+                                                                setProductForm({ ...productForm, features: [...current, val].join("\n") });
+                                                                e.target.value = "";
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-[10px] uppercase font-bold text-muted-foreground">System Specifications (Key:Value)</Label>
+                                        <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                                            {(productForm.specs || "").split("\n").filter(l => l.includes(":")).map((line, i, arr) => {
+                                                const [key, val] = line.split(":");
+                                                const updateSpec = (updates) => {
+                                                    const newLines = arr.map((l, idx) => {
+                                                        if (idx === i) {
+                                                            const k = updates.key !== undefined ? updates.key : key;
+                                                            const v = updates.val !== undefined ? updates.val : val;
+                                                            return `${k?.trim()}:${v?.trim()}`;
+                                                        }
+                                                        return l;
+                                                    });
+                                                    setProductForm({ ...productForm, specs: newLines.join("\n") });
+                                                };
+                                                const removeSpec = () => {
+                                                    const newLines = arr.filter((_, idx) => idx !== i);
+                                                    setProductForm({ ...productForm, specs: newLines.join("\n") });
+                                                };
+                                                return (
+                                                    <div key={i} className="flex gap-2 items-center">
+                                                        <Input placeholder="Key" value={key?.trim()} onChange={e => updateSpec({ key: e.target.value })} className="h-7 text-[10px] bg-background/50 border-border/30 w-24 font-bold" />
+                                                        <Input placeholder="Value" value={val?.trim()} onChange={e => updateSpec({ val: e.target.value })} className="h-7 text-[10px] bg-background/50 border-border/30 flex-1" />
+                                                        <Button type="button" variant="ghost" size="sm" onClick={removeSpec} className="h-7 w-7 p-0 text-destructive/50 hover:text-destructive"><LucideIcons.X className="w-3 h-3" /></Button>
+                                                    </div>
+                                                );
+                                            })}
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                className="w-full h-7 text-[9px] border border-dashed border-border/30 hover:bg-primary/5"
+                                                onClick={() => {
+                                                    const current = (productForm.specs || "").split("\n").filter(l => l.trim());
+                                                    setProductForm({ ...productForm, specs: [...current, "Platform:Web"].join("\n") });
+                                                }}
+                                            >
+                                                <LucideIcons.Plus className="w-3 h-3 mr-2" /> Add Specification
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <Textarea value={productForm.description} onChange={e => setProductForm({ ...productForm, description: e.target.value })} placeholder="Description" className="bg-background/50" />
-                        <Input value={productForm.tags} onChange={e => setProductForm({ ...productForm, tags: e.target.value })} placeholder="Tags (comma separated)" className="bg-background/50" />
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input value={productForm.buttonText} onChange={e => setProductForm({ ...productForm, buttonText: e.target.value })} placeholder="Button Text (e.g. Add to Cart)" className="bg-background/50" />
-                            <Input value={productForm.buttonLink} onChange={e => setProductForm({ ...productForm, buttonLink: e.target.value })} placeholder="Button Link (e.g. /contact)" className="bg-background/50" />
+
+                        {/* Section 3: High-Density Highlights & FAQ */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Advanced Landing Sections</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Technical Highlights</Label>
+                                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {((productForm.highlights || "").split("\n").map(line => {
+                                            const [icon, title, ...desc] = line.split("|");
+                                            return { icon: icon?.trim() || "Zap", title: title?.trim() || "", description: desc.join("|")?.trim() || "" };
+                                        }).filter(h => h.title || h.description || h.icon !== "Zap" || (productForm.highlights || "").includes(h.icon))).map((h, i, arr) => {
+                                            const IconComp = LucideIcons[h.icon] || LucideIcons.Zap;
+                                            const updateRow = (updates) => {
+                                                const newArr = [...arr];
+                                                newArr[i] = { ...newArr[i], ...updates };
+                                                setProductForm({ ...productForm, highlights: newArr.filter(x => x.title || x.description).map(x => `${x.icon}|${x.title}|${x.description}`).join("\n") });
+                                            };
+                                            const removeRow = () => {
+                                                const newArr = arr.filter((_, idx) => idx !== i);
+                                                setProductForm({ ...productForm, highlights: newArr.map(x => `${x.icon}|${x.title}|${x.description}`).join("\n") });
+                                            };
+                                            return (
+                                                <div key={i} className="flex gap-2 items-start border border-border/30 p-2.5 rounded-xl bg-background/30 hover:bg-background/50 transition-colors">
+                                                    <Select value={h.icon} onValueChange={v => updateRow({ icon: v })}>
+                                                        <SelectTrigger className="w-12 h-10 p-0 flex justify-center bg-card/50 border-border/50">
+                                                            <IconComp className="w-4 h-4 text-primary" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-card border-border text-white">
+                                                            {HIGHLIGHT_ICONS.map(name => {
+                                                                const Ico = LucideIcons[name] || LucideIcons.Zap;
+                                                                return <SelectItem key={name} value={name}><div className="flex items-center gap-2"><Ico className="w-4 h-4" /> <span className="text-[10px]">{name}</span></div></SelectItem>
+                                                            })}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <div className="flex-1 space-y-2">
+                                                        <Input placeholder="Highlight Title" value={h.title} onChange={e => updateRow({ title: e.target.value })} className="h-7 text-[11px] font-bold bg-transparent border-border/30" />
+                                                        <Input placeholder="Short Description" value={h.description} onChange={e => updateRow({ description: e.target.value })} className="h-7 text-[10px] bg-transparent border-border/30" />
+                                                    </div>
+                                                    <Button type="button" variant="ghost" size="sm" onClick={removeRow} className="text-destructive/50 hover:text-destructive h-7 w-7 p-0"><LucideIcons.X className="w-3 h-3" /></Button>
+                                                </div>
+                                            );
+                                        })}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full text-[10px] h-9 border-dashed border-border/50 hover:bg-primary/5 hover:text-primary transition-all font-bold uppercase tracking-widest"
+                                            onClick={() => {
+                                                const currentHighlights = (productForm.highlights || "").split("\n").filter(l => l.trim());
+                                                setProductForm({ ...productForm, highlights: [...currentHighlights, "Zap|New Highlight|Add details"].join("\n") });
+                                            }}
+                                        >
+                                            <LucideIcons.Plus className="w-3 h-3 mr-2" /> Add Technical Highlight
+                                        </Button>
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium opacity-50">Visual Experience Configurator</p>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <Label className="text-[10px] uppercase font-bold text-muted-foreground">Product FAQ</Label>
+                                    <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {((productForm.faqs || "").split("\n").map(line => {
+                                            const [q, a] = line.split("|");
+                                            return { question: q?.trim() || "", answer: a?.trim() || "" };
+                                        }).filter(f => f.question || f.answer)).map((f, i, arr) => {
+                                            const updateRow = (updates) => {
+                                                const newArr = [...arr];
+                                                newArr[i] = { ...newArr[i], ...updates };
+                                                setProductForm({ ...productForm, faqs: newArr.filter(x => x.question || x.answer).map(x => `${x.question}|${x.answer}`).join("\n") });
+                                            };
+                                            const removeRow = () => {
+                                                const newArr = arr.filter((_, idx) => idx !== i);
+                                                setProductForm({ ...productForm, faqs: newArr.map(x => `${x.question}|${x.answer}`).join("\n") });
+                                            };
+                                            return (
+                                                <div key={i} className="space-y-2 border border-border/30 p-2.5 rounded-xl bg-background/30 hover:bg-background/50 transition-colors group">
+                                                    <div className="flex justify-between items-center">
+                                                        <Label className="text-[9px] uppercase font-black text-muted-foreground/50">Entry #{i + 1}</Label>
+                                                        <Button type="button" variant="ghost" size="sm" onClick={removeRow} className="text-destructive/50 hover:text-destructive h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"><LucideIcons.X className="w-3 h-3" /></Button>
+                                                    </div>
+                                                    <Input placeholder="Inquiry/Question" value={f.question} onChange={e => updateRow({ question: e.target.value })} className="h-8 text-[11px] font-bold bg-transparent border-border/30" />
+                                                    <Textarea placeholder="Resolution/Answer" value={f.answer} onChange={e => updateRow({ answer: e.target.value })} className="min-h-[50px] text-[10px] bg-transparent border-border/30 py-2 resize-none" />
+                                                </div>
+                                            );
+                                        })}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="w-full text-[10px] h-9 border-dashed border-border/50 hover:bg-blue-500/5 hover:text-blue-400 transition-all font-bold uppercase tracking-widest"
+                                            onClick={() => {
+                                                const currentFaqs = (productForm.faqs || "").split("\n").filter(l => l.trim());
+                                                setProductForm({ ...productForm, faqs: [...currentFaqs, "New Question|New Answer"].join("\n") });
+                                            }}
+                                        >
+                                            <LucideIcons.Plus className="w-3 h-3 mr-2" /> Add FAQ Entry
+                                        </Button>
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground uppercase tracking-widest font-medium opacity-50">Support Knowledge Base Config</p>
+                                </div>
+                            </div>
                         </div>
-                        <Button type="submit">Save Product</Button>
+
+                        {/* Section 4: Support & Procurements */}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-2 border-b border-border/50 pb-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white">Support & Procurements</h3>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4 border p-4 rounded-xl border-border/50 bg-background/20">
+                                    <Label className="text-[10px] uppercase font-bold text-primary">Support Block Config</Label>
+                                    <Input value={productForm.supportTitle} onChange={e => setProductForm({ ...productForm, supportTitle: e.target.value })} placeholder="Block Title" className="bg-background/50 text-xs" />
+                                    <Textarea value={productForm.supportDescription} onChange={e => setProductForm({ ...productForm, supportDescription: e.target.value })} placeholder="Support description text..." className="bg-background/50 min-h-[60px] text-xs" />
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Input value={productForm.supportButtonText} onChange={e => setProductForm({ ...productForm, supportButtonText: e.target.value })} placeholder="Btn Text" className="bg-background/50 text-[10px]" />
+                                        <Input value={productForm.supportButtonLink} onChange={e => setProductForm({ ...productForm, supportButtonLink: e.target.value })} placeholder="Btn Link" className="bg-background/50 text-[10px]" />
+                                    </div>
+                                </div>
+                                <div className="space-y-4 border p-4 rounded-xl border-border/50 bg-background/20">
+                                    <Label className="text-[10px] uppercase font-bold text-primary">Call to Action (CTA)</Label>
+                                    <Input value={productForm.buttonText} onChange={e => setProductForm({ ...productForm, buttonText: e.target.value })} placeholder="Execute Acquisition" className="bg-background/50 font-bold" />
+                                    <Input value={productForm.buttonLink} onChange={e => setProductForm({ ...productForm, buttonLink: e.target.value })} placeholder="Procurement Route (URL)" className="bg-background/50 text-xs" />
+
+                                    <div className="space-y-4 pt-4 border-t border-border/30 mt-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="space-y-0.5">
+                                                <Label className="text-[10px] uppercase font-bold text-muted-foreground">Show Delivery Note</Label>
+                                                <p className="text-[9px] text-muted-foreground leading-none">Show "Instant delivery" text under button</p>
+                                            </div>
+                                            <Switch
+                                                checked={productForm.showDeliveryBadge}
+                                                onCheckedChange={c => setProductForm({ ...productForm, showDeliveryBadge: c })}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between">
+                                                <div className="space-y-0.5">
+                                                    <Label className="text-[10px] uppercase font-bold text-yellow-500">In-Page Notification Banner</Label>
+                                                    <p className="text-[9px] text-muted-foreground leading-none">Enable a high-visibility info banner</p>
+                                                </div>
+                                                <Switch
+                                                    checked={productForm.betaBannerEnabled}
+                                                    onCheckedChange={c => setProductForm({ ...productForm, betaBannerEnabled: c })}
+                                                />
+                                            </div>
+                                            {productForm.betaBannerEnabled && (
+                                                <div className="space-y-1.5 focus-within:animate-pulse">
+                                                    <Input
+                                                        value={productForm.betaBannerMessage}
+                                                        onChange={e => setProductForm({ ...productForm, betaBannerMessage: e.target.value })}
+                                                        placeholder="e.g. Beta Access: Contact us for custom integration..."
+                                                        className="h-8 text-[11px] bg-yellow-500/5 border-yellow-500/20 text-yellow-500 placeholder:text-yellow-500/30"
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4 pt-6">
+                            <Button type="button" variant="ghost" className="flex-1 border border-border/50 hover:bg-muted/50" onClick={() => setIsProductDialogOpen(false)}>Discard Registry Delta</Button>
+                            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest shadow-lg shadow-primary/20">Commit to Product Registry</Button>
+                        </div>
                     </form>
                 </DialogContent>
             </Dialog>
 
             {/* User Config Dialog */}
             <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
-                <DialogContent className="bg-card text-white border-border/50">
+                <DialogContent className="bg-card text-white border-border/50" data-lenis-prevent>
                     <DialogHeader><DialogTitle>Configure User</DialogTitle></DialogHeader>
                     <form onSubmit={handleUserSubmit} className="space-y-6">
                         {/* Profile Pic Upload */}
@@ -867,7 +1397,20 @@ export default function Controls() {
                 </DialogContent>
             </Dialog>
 
+            <Dialog open={isCategoryDialogOpen} onOpenChange={setIsCategoryDialogOpen}>
+                <DialogContent className="bg-card text-white border-border/50">
+                    <DialogHeader><DialogTitle>{editingId ? "Edit Category" : "New Category"}</DialogTitle></DialogHeader>
+                    <form onSubmit={handleCategorySubmit} className="space-y-4">
+                        <div className="space-y-2">
+                            <Label>Category Name</Label>
+                            <Input value={categoryForm.name} onChange={e => setCategoryForm({ name: e.target.value })} placeholder="e.g. Web App" className="bg-background/50" />
+                        </div>
+                        <Button type="submit" className="w-full">Save Category</Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
             <Footer />
-        </div >
+        </div>
     );
 }
