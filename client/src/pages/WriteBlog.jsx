@@ -14,8 +14,10 @@ import ImageUploadModal from "@/components/ImageUploadModal";
 import {
     Save, Eye, FileText, Image as ImageIcon, Tag, Settings,
     Bold, Italic, Heading1, Heading2, List, ListOrdered,
-    Link as LinkIcon, Code, Quote, Columns, Maximize2, Edit3, Upload
+    Link as LinkIcon, Code, Quote, Columns, Maximize2, Edit3, Upload, Plus
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 const EDITOR_MODES = {
     TOOLBAR: {
@@ -62,13 +64,21 @@ export default function WriteBlog() {
     const [cursorPosition, setCursorPosition] = useState(0); // Track cursor position for WYSIWYG
     const [loading, setLoading] = useState(isEditMode); // Loading state for fetching blog data
 
+    // Series State
+    const [seriesList, setSeriesList] = useState([]);
+    const [showSeriesModal, setShowSeriesModal] = useState(false);
+    const [newSeriesName, setNewSeriesName] = useState("");
+
     const [formData, setFormData] = useState({
         title: "",
         content: "",
         excerpt: "",
         coverImage: "",
         tags: "",
+        coverImage: "",
+        tags: "",
         published: false,
+        seriesId: "",
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -99,7 +109,40 @@ export default function WriteBlog() {
         if (isEditMode && editId) {
             fetchBlogForEdit(editId);
         }
+
+        fetchSeries();
     }, [isAuthenticated, user, setLocation, toast, isEditMode, editId, isAuthorized]);
+
+    const fetchSeries = async () => {
+        try {
+            const res = await fetch("http://localhost:8080/api/blog-series");
+            if (res.ok) setSeriesList(await res.json());
+        } catch (e) {
+            console.error("Failed to fetch series", e);
+        }
+    };
+
+    const handleCreateSeries = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await fetch("http://localhost:8080/api/blog-series", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ name: newSeriesName })
+            });
+
+            if (!res.ok) throw new Error("Failed to create series");
+
+            const newSeries = await res.json();
+            setSeriesList([...seriesList, newSeries]);
+            setFormData(prev => ({ ...prev, seriesId: newSeries.id }));
+            setShowSeriesModal(false);
+            setNewSeriesName("");
+            toast({ title: "Series Created", description: `Series "${newSeries.name}" created.` });
+        } catch (err) {
+            toast({ title: "Error", description: "Failed to create series", variant: "destructive" });
+        }
+    };
 
     const fetchBlogForEdit = async (id) => {
         try {
@@ -122,7 +165,9 @@ export default function WriteBlog() {
                 excerpt: data.excerpt || "",
                 coverImage: data.coverImage || "",
                 tags: data.tags ? data.tags.join(", ") : "",
+                tags: data.tags ? data.tags.join(", ") : "",
                 published: data.published || false,
+                seriesId: data.seriesId || "",
             });
 
             toast({
@@ -697,6 +742,33 @@ Write your content here...
                                         </p>
                                     </div>
 
+                                    {/* Series Selection */}
+                                    <div className="space-y-2">
+                                        <Label className="text-white font-semibold flex items-center gap-2">
+                                            <Columns className="w-4 h-4" />
+                                            Series (Optional)
+                                        </Label>
+                                        <div className="flex gap-2">
+                                            <Select
+                                                value={formData.seriesId}
+                                                onValueChange={(val) => setFormData(p => ({ ...p, seriesId: val === "none" ? "" : val }))}
+                                            >
+                                                <SelectTrigger className="bg-background/60 border-border/50 text-white w-full">
+                                                    <SelectValue placeholder="Select a Series..." />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">None</SelectItem>
+                                                    {seriesList.map(s => (
+                                                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <Button type="button" variant="outline" onClick={() => setShowSeriesModal(true)} className="border-primary/20 hover:bg-primary/10 gap-2">
+                                                <Plus className="w-4 h-4" /> New
+                                            </Button>
+                                        </div>
+                                    </div>
+
                                     {/* Content Editor */}
                                     <div className="space-y-2">
                                         <Label className="text-white font-semibold">
@@ -807,6 +879,21 @@ Write your content here...
                     </Card>
                 </motion.div>
             </div>
+
+            <Dialog open={showSeriesModal} onOpenChange={setShowSeriesModal}>
+                <DialogContent className="bg-card text-white border-border/50">
+                    <DialogHeader><DialogTitle>Create New Series</DialogTitle></DialogHeader>
+                    <form onSubmit={handleCreateSeries} className="space-y-4">
+                        <Input
+                            placeholder="Series Name (e.g., System Design)"
+                            value={newSeriesName}
+                            onChange={e => setNewSeriesName(e.target.value)}
+                            className="bg-background/50 border-border/50"
+                        />
+                        <Button type="submit" disabled={!newSeriesName.trim()}>Create Series</Button>
+                    </form>
+                </DialogContent>
+            </Dialog>
 
             {/* Image Upload Modal */}
             <ImageUploadModal
