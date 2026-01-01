@@ -83,7 +83,12 @@ export default function Controls() {
             { value: "20+", label: "Projects Completed" },
             { value: "99%", label: "Client Satisfaction" },
             { value: "24/7", label: "Support Available" }
-        ]
+        ],
+        socialTwitter: "",
+        socialLinkedin: "",
+        socialLinkedin: "",
+        socialGithub: "",
+        siteLogo: ""
     });
 
     // Style Lock State for Service Dialog
@@ -218,6 +223,11 @@ export default function Controls() {
                 const heroTitle2 = confData.find(c => c.configKey === "hero_title2")?.configValue || "Presence Today";
                 const heroDesc = confData.find(c => c.configKey === "hero_desc")?.configValue || "Kodekernel delivers cutting-edge web design and development solutions that drive results. Partner with us to build exceptional digital experiences.";
 
+                const socialTwitter = confData.find(c => c.configKey === "social_twitter")?.configValue || "";
+                const socialLinkedin = confData.find(c => c.configKey === "social_linkedin")?.configValue || "";
+                const socialGithub = confData.find(c => c.configKey === "social_github")?.configValue || "";
+                const siteLogo = confData.find(c => c.configKey === "site_logo")?.configValue || "/company-logo.png";
+
                 let heroStats = [
                     { value: "10+", label: "Happy Clients" },
                     { value: "20+", label: "Projects Completed" },
@@ -239,7 +249,11 @@ export default function Controls() {
                     heroTitle1,
                     heroTitle2,
                     heroDesc,
-                    heroStats
+                    heroStats,
+                    socialTwitter,
+                    socialLinkedin,
+                    socialGithub,
+                    siteLogo
                 });
             }
         } catch (error) {
@@ -482,6 +496,50 @@ export default function Controls() {
         }
     };
 
+    const handleLogoUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        setUploading(true);
+        try {
+            const res = await fetch("http://localhost:8080/api/upload/image", {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!res.ok) {
+                const errData = await res.json();
+                throw new Error(errData.message || "Upload failed");
+            }
+
+            const data = await res.json();
+            const newLogoUrl = data.url;
+            setSettingsForm(prev => ({ ...prev, siteLogo: newLogoUrl }));
+
+            // Auto-save the logo configuration immediately
+            await fetch("http://localhost:8080/api/config/batch", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify([{ configKey: "site_logo", configValue: newLogoUrl }])
+            });
+
+            toast({ title: "Success", description: "Logo uploaded and saved. Refreshing..." });
+
+            // Reload to update Navigation
+            setTimeout(() => window.location.reload(), 1500);
+
+        } catch (err) {
+            console.error(err);
+            toast({ title: "Error", description: err.message, variant: "destructive" });
+        } finally {
+            setUploading(false);
+        }
+    };
+
     // --- User Handlers ---
     const selectUserForEdit = (u) => {
         setEditingId(u.id);
@@ -535,7 +593,12 @@ export default function Controls() {
                 { configKey: "hero_title1", configValue: settingsForm.heroTitle1 },
                 { configKey: "hero_title2", configValue: settingsForm.heroTitle2 },
                 { configKey: "hero_desc", configValue: settingsForm.heroDesc },
-                { configKey: "hero_stats", configValue: JSON.stringify(settingsForm.heroStats) }
+                { configKey: "hero_desc", configValue: settingsForm.heroDesc },
+                { configKey: "hero_stats", configValue: JSON.stringify(settingsForm.heroStats) },
+                { configKey: "social_twitter", configValue: settingsForm.socialTwitter },
+                { configKey: "social_linkedin", configValue: settingsForm.socialLinkedin },
+                { configKey: "social_github", configValue: settingsForm.socialGithub },
+                { configKey: "site_logo", configValue: settingsForm.siteLogo }
             ];
             const res = await fetch("http://localhost:8080/api/config/batch", {
                 method: "POST",
@@ -830,6 +893,41 @@ export default function Controls() {
                                     </div>
                                     <Switch checked={settingsForm.chatbotEnabled} onCheckedChange={c => setSettingsForm({ ...settingsForm, chatbotEnabled: c })} />
                                 </div>
+
+                                <div className="space-y-4 pt-4 border-t border-border/50">
+                                    <h3 className="text-lg font-semibold text-white">Visual Identity</h3>
+                                    <div className="grid gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Site Logo URL</Label>
+                                            <div className="flex gap-2">
+                                                <Input value={settingsForm.siteLogo} onChange={e => setSettingsForm({ ...settingsForm, siteLogo: e.target.value })} placeholder="/company-logo.png" className="bg-background/50 flex-1" />
+                                                <Label htmlFor="logo-upload" className="cursor-pointer bg-primary/20 hover:bg-primary/30 text-primary px-3 py-2 rounded-md flex items-center justify-center">
+                                                    <Upload className="w-4 h-4" />
+                                                </Label>
+                                                <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-4 border-t border-border/50">
+                                    <h3 className="text-lg font-semibold text-white">Social Media Links</h3>
+                                    <div className="grid gap-4">
+                                        <div className="space-y-2">
+                                            <Label>Twitter / X URL</Label>
+                                            <Input value={settingsForm.socialTwitter} onChange={e => setSettingsForm({ ...settingsForm, socialTwitter: e.target.value })} placeholder="https://twitter.com/..." className="bg-background/50" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>LinkedIn URL</Label>
+                                            <Input value={settingsForm.socialLinkedin} onChange={e => setSettingsForm({ ...settingsForm, socialLinkedin: e.target.value })} placeholder="https://linkedin.com/in/..." className="bg-background/50" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>GitHub URL</Label>
+                                            <Input value={settingsForm.socialGithub} onChange={e => setSettingsForm({ ...settingsForm, socialGithub: e.target.value })} placeholder="https://github.com/..." className="bg-background/50" />
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <Button onClick={saveSettings}>Save Settings</Button>
                             </CardContent>
                         </Card>
@@ -1411,6 +1509,6 @@ export default function Controls() {
             </Dialog>
 
             <Footer />
-        </div>
+        </div >
     );
 }

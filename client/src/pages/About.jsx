@@ -7,7 +7,8 @@ import Chatbot from "@/components/Chatbot";
 import AnimatedSection from "@/components/AnimatedSection";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Target, Eye, Award, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Target, Eye, Award, Users, Twitter, Linkedin, Github } from "lucide-react";
 
 const values = [
   {
@@ -35,6 +36,7 @@ const values = [
 export default function About() {
   const [team, setTeam] = useState([]);
   const [showTeam, setShowTeam] = useState(true);
+  const [socials, setSocials] = useState({ twitter: "", linkedin: "", github: "" });
 
   useEffect(() => {
     fetch("http://localhost:8080/api/users/team")
@@ -50,6 +52,12 @@ export default function About() {
       .then(data => {
         const val = data.find(c => c.configKey === "team_section_enabled")?.configValue;
         setShowTeam(val !== "false");
+
+        setSocials({
+          twitter: data.find(c => c.configKey === "social_twitter")?.configValue || "",
+          linkedin: data.find(c => c.configKey === "social_linkedin")?.configValue || "",
+          github: data.find(c => c.configKey === "social_github")?.configValue || ""
+        });
       })
       .catch(e => console.error(e));
   }, []);
@@ -74,7 +82,32 @@ export default function About() {
               We're a team of passionate developers and designers committed to delivering
               exceptional web solutions that drive business growth.
             </p>
-            <div className="h-px w-48 mx-auto mt-8 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+
+            <div className="flex justify-center gap-4 mt-8">
+              {socials.twitter && (
+                <a href={socials.twitter} target="_blank" rel="noopener noreferrer">
+                  <Button size="icon" variant="outline" className="rounded-full w-12 h-12 border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Twitter className="w-5 h-5" />
+                  </Button>
+                </a>
+              )}
+              {socials.linkedin && (
+                <a href={socials.linkedin} target="_blank" rel="noopener noreferrer">
+                  <Button size="icon" variant="outline" className="rounded-full w-12 h-12 border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Linkedin className="w-5 h-5" />
+                  </Button>
+                </a>
+              )}
+              {socials.github && (
+                <a href={socials.github} target="_blank" rel="noopener noreferrer">
+                  <Button size="icon" variant="outline" className="rounded-full w-12 h-12 border-primary/20 hover:bg-primary/10 hover:text-primary transition-colors">
+                    <Github className="w-5 h-5" />
+                  </Button>
+                </a>
+              )}
+            </div>
+
+            <div className="h-px w-48 mx-auto mt-12 bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-24">

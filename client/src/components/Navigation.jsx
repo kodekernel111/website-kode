@@ -15,6 +15,7 @@ import { logout } from "../store/authSlice";
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showCoffee, setShowCoffee] = useState(true);
+  const [siteLogo, setSiteLogo] = useState("/company-logo.png");
   const [location, setLocation] = useLocation();
   const { isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -42,8 +43,11 @@ export default function Navigation() {
     fetch("http://localhost:8080/api/config")
       .then(res => res.ok ? res.json() : [])
       .then(data => {
-        const val = data.find(c => c.configKey === "buy_coffee_enabled")?.configValue;
-        setShowCoffee(val !== "false");
+        const coffeeVal = data.find(c => c.configKey === "buy_coffee_enabled")?.configValue;
+        setShowCoffee(coffeeVal !== "false");
+
+        const logoVal = data.find(c => c.configKey === "site_logo")?.configValue;
+        if (logoVal) setSiteLogo(logoVal);
       })
       .catch(e => console.error(e));
   }, [location]);
@@ -54,7 +58,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-3 hover-elevate active-elevate-2 px-2 py-1 rounded-md -ml-2 no-underline">
             <img
-              src="/company-logo.png"
+              src={siteLogo}
               alt="Kodekernel"
               className="w-16 h-16 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] drop-shadow-[0_0_25px_rgba(56,189,248,0.25)] hover:drop-shadow-[0_0_20px_rgba(56,189,248,0.6)] hover:drop-shadow-[0_0_35px_rgba(56,189,248,0.4)] transition-all duration-300"
               data-testid="logo-icon"

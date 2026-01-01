@@ -2,10 +2,24 @@ import { Link } from "wouter";
 import { Code2, Mail, Twitter, Linkedin, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const [socials, setSocials] = useState({ twitter: "", linkedin: "", github: "" });
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/config")
+      .then(res => res.ok ? res.json() : [])
+      .then(data => {
+        setSocials({
+          twitter: data.find(c => c.configKey === "social_twitter")?.configValue || "",
+          linkedin: data.find(c => c.configKey === "social_linkedin")?.configValue || "",
+          github: data.find(c => c.configKey === "social_github")?.configValue || ""
+        });
+      })
+      .catch(err => console.error("Footer config fetch error", err));
+  }, []);
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
@@ -26,15 +40,27 @@ export default function Footer() {
               Delivering premium web design and development SaaS solutions to transform your digital presence.
             </p>
             <div className="flex gap-3">
-              <Button size="icon" variant="ghost" data-testid="link-twitter">
-                <Twitter className="w-5 h-5" />
-              </Button>
-              <Button size="icon" variant="ghost" data-testid="link-linkedin">
-                <Linkedin className="w-5 h-5" />
-              </Button>
-              <Button size="icon" variant="ghost" data-testid="link-github">
-                <Github className="w-5 h-5" />
-              </Button>
+              {socials.twitter && (
+                <a href={socials.twitter} target="_blank" rel="noopener noreferrer">
+                  <Button size="icon" variant="ghost" data-testid="link-twitter">
+                    <Twitter className="w-5 h-5" />
+                  </Button>
+                </a>
+              )}
+              {socials.linkedin && (
+                <a href={socials.linkedin} target="_blank" rel="noopener noreferrer">
+                  <Button size="icon" variant="ghost" data-testid="link-linkedin">
+                    <Linkedin className="w-5 h-5" />
+                  </Button>
+                </a>
+              )}
+              {socials.github && (
+                <a href={socials.github} target="_blank" rel="noopener noreferrer">
+                  <Button size="icon" variant="ghost" data-testid="link-github">
+                    <Github className="w-5 h-5" />
+                  </Button>
+                </a>
+              )}
             </div>
           </div>
 
