@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,12 +61,12 @@ export default function Chatbot() {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/products")
+    fetch(`${API_BASE_URL}/api/products`)
       .then(res => res.ok ? res.json() : [])
       .then(data => setProducts(data))
       .catch(err => console.error("Error fetching products for chatbot:", err));
 
-    fetch("http://localhost:8080/api/config")
+    fetch(`${API_BASE_URL}/api/config`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         const val = data.find(c => c.configKey === "chatbot_enabled")?.configValue;

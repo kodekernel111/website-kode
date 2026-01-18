@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import { useSelector } from "react-redux";
@@ -41,7 +42,7 @@ export default function BlogPost() {
 
   const fetchBlogPost = async (id) => {
     try {
-      const response = await fetch(`http://localhost:8080/api/blogs/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/blogs/${id}`);
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -82,7 +83,7 @@ export default function BlogPost() {
       // 1. User hasn't viewed before, OR
       // 2. Last view was more than 24 hours ago
       if (!lastViewTime || (now - parseInt(lastViewTime)) > twentyFourHours) {
-        await fetch(`http://localhost:8080/api/blogs/${id}/view`, {
+        await fetch(`${API_BASE_URL}/api/blogs/${id}/view`, {
           method: "POST",
         });
 
@@ -116,7 +117,7 @@ export default function BlogPost() {
   const fetchAuthorStats = async (email) => {
     try {
       const response = await fetch(
-        `http://localhost:8080/api/blogs/author/${encodeURIComponent(email)}/stats`
+        `${API_BASE_URL}/api/blogs/author/${encodeURIComponent(email)}/stats`
       );
 
       if (response.ok) {
@@ -136,20 +137,17 @@ export default function BlogPost() {
       return;
     }
 
-    console.log('Liking post:', post.id, 'Current liked:', liked, 'Current count:', likeCount);
     setIsLiking(true);
 
     try {
-      const url = `http://localhost:8080/api/blogs/${post.id}/like${liked ? '?unlike=true' : ''}`;
+      const url = `${API_BASE_URL}/api/blogs/${post.id}/like${liked ? '?unlike=true' : ''}`;
       const response = await fetch(url, {
         method: 'POST',
       });
 
-      console.log('Response status:', response.status, 'OK:', response.ok);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Response data:', data);
         const newLiked = !liked; // Toggle
 
         setLiked(newLiked);
@@ -163,7 +161,6 @@ export default function BlogPost() {
           }));
         }
 
-        console.log('Updated state - liked:', newLiked, 'count:', data.likeCount);
 
         // Store in localStorage
         if (newLiked) {

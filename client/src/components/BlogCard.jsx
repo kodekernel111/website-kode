@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Clock } from "lucide-react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
@@ -12,6 +12,7 @@ export default function BlogCard({
   category,
   author,
   authorInitials,
+  authorProfilePic,
   date,
   readTime,
   featured = false,
@@ -66,6 +67,7 @@ export default function BlogCard({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Avatar className="w-8 h-8">
+                  <AvatarImage src={authorProfilePic} alt={author} />
                   <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                     {authorInitials}
                   </AvatarFallback>

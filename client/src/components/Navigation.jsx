@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,7 @@ export default function Navigation() {
 
   const navLinks = [
     { href: "/", label: "Home" },
-    { href: "/projects", label: "Projects" },
+    { href: "/projects", label: "Products" },
     { href: "/services", label: "Services" },
     { href: "/pricing", label: "Pricing" },
     { href: "/blog", label: "Blog" },
@@ -40,7 +41,7 @@ export default function Navigation() {
   ];
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/config")
+    fetch(`${API_BASE_URL}/api/config`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         const coffeeVal = data.find(c => c.configKey === "buy_coffee_enabled")?.configValue;

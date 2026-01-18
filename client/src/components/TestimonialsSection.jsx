@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { Card } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
 import { motion } from "framer-motion";
@@ -11,7 +12,7 @@ export default function TestimonialsSection() {
   const [hovered, setHovered] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/testimonials")
+    fetch(`${API_BASE_URL}/api/testimonials`)
       .then(res => {
         if (!res.ok) throw new Error("Failed");
         return res.json();

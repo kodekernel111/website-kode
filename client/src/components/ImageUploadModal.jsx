@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +57,7 @@ export default function ImageUploadModal({ isOpen, onClose, onInsert, token }) {
             const formData = new FormData();
             formData.append('image', file);
 
-            const response = await fetch('http://localhost:8080/api/upload/image', {
+            const response = await fetch(`${API_BASE_URL}/api/upload/image`, {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${token}`,

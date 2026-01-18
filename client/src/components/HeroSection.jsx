@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,7 @@ export default function HeroSection() {
   });
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/config")
+    fetch(`${API_BASE_URL}/api/config`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         const badge = data.find(c => c.configKey === "hero_badge")?.configValue;

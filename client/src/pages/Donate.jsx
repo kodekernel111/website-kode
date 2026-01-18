@@ -38,7 +38,6 @@ export default function Donate() {
 
   const handleDonate = () => {
     const amount = customAmount || selectedAmount;
-    console.log("Donation amount:", amount);
   };
 
   return (

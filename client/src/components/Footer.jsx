@@ -3,13 +3,14 @@ import { Code2, Mail, Twitter, Linkedin, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
+import API_BASE_URL from '../config';
 
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [socials, setSocials] = useState({ twitter: "", linkedin: "", github: "" });
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/config")
+    fetch(`${API_BASE_URL}/api/config`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         setSocials({
@@ -23,7 +24,6 @@ export default function Footer() {
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault();
-    console.log("Newsletter signup:", email);
     setEmail("");
   };
 

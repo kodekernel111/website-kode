@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Tilt from "react-parallax-tilt";
@@ -39,7 +40,7 @@ export default function About() {
   const [socials, setSocials] = useState({ twitter: "", linkedin: "", github: "" });
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/users/team")
+    fetch(`${API_BASE_URL}/api/users/team`)
       .then(res => {
         if (!res.ok) throw new Error("Failed");
         return res.json();
@@ -47,7 +48,7 @@ export default function About() {
       .then(data => setTeam(data))
       .catch(e => console.error("Failed to fetch team", e));
 
-    fetch("http://localhost:8080/api/config")
+    fetch(`${API_BASE_URL}/api/config`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
         const val = data.find(c => c.configKey === "team_section_enabled")?.configValue;

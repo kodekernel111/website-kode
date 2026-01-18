@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import { useRoute, Link } from "wouter";
 import Navigation from "@/components/Navigation";
@@ -45,7 +46,7 @@ export default function ProductDetail() {
 
     const fetchProduct = async (id) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/products/${id}`);
+            const response = await fetch(`${API_BASE_URL}/api/products/${id}`);
             if (!response.ok) {
                 if (response.status === 404) {
                     throw new Error("Product not found");

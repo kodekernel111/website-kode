@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -7,7 +8,7 @@ import BlogCard from "@/components/BlogCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Search, Layers, Clock, ArrowLeft, BookOpen } from "lucide-react";
+import { Search, Layers, Clock, ArrowLeft, BookOpen, Sparkles, Code2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Pagination,
@@ -40,7 +41,7 @@ export default function Blog() {
   // Fetch Series when tab is clicked
   useEffect(() => {
     if (viewMode === 'series' && seriesList.length === 0) {
-      fetch("http://localhost:8080/api/blog-series/with-posts")
+      fetch(`${API_BASE_URL}/api/blog-series/with-posts`)
         .then(res => {
           if (!res.ok) throw new Error("Failed to fetch series");
           return res.json();
@@ -60,6 +61,7 @@ export default function Blog() {
                 date: formatDate(post.publishedAt || post.createdAt),
                 readTime: estimateReadTime(post.content),
                 coverImage: post.coverImage,
+                authorProfilePic: post.authorProfilePic,
                 isStatic: false,
               }))
             }));
@@ -96,8 +98,8 @@ export default function Blog() {
     try {
       const pageIndex = page - 1;
       const url = query
-        ? `http://localhost:8080/api/blogs/search?q=${encodeURIComponent(query)}&page=${pageIndex}&size=${ITEMS_PER_PAGE}`
-        : `http://localhost:8080/api/blogs?page=${pageIndex}&size=${ITEMS_PER_PAGE}`;
+        ? `${API_BASE_URL}/api/blogs/search?q=${encodeURIComponent(query)}&page=${pageIndex}&size=${ITEMS_PER_PAGE}`
+        : `${API_BASE_URL}/api/blogs?page=${pageIndex}&size=${ITEMS_PER_PAGE}`;
 
       const response = await fetch(url);
 
@@ -121,6 +123,7 @@ export default function Blog() {
         date: formatDate(post.publishedAt || post.createdAt),
         readTime: estimateReadTime(post.content),
         coverImage: post.coverImage,
+        authorProfilePic: post.authorProfilePic,
         isStatic: false,
       }));
 
@@ -177,10 +180,35 @@ export default function Blog() {
             <h1 className="text-5xl lg:text-6xl font-bold mb-6" data-testid="text-blog-title">
               Our Blog
             </h1>
-            <p className="text-sm text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8" data-testid="text-blog-subtitle">
-              Technical insights, industry trends, and expert perspectives from our team.
-              Published every weekend.
-            </p>
+            <div className="relative max-w-4xl mx-auto mb-16 space-y-8">
+              {/* Background Blur */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-40 bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col items-center gap-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-primary/80 uppercase tracking-widest backdrop-blur-md">
+                  <Code2 className="w-3 h-3" />
+                  Our DNA
+                </div>
+
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+                  Driven by a strong <br />
+                  <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent filter drop-shadow-sm">
+                    Engineering-First Culture
+                  </span>
+                </h2>
+
+                <p className="text-lg text-muted-foreground/90 max-w-2xl mx-auto leading-relaxed font-light" data-testid="text-blog-subtitle">
+                  Technical insights, architecture deep-dives, and industry trends. <br className="hidden sm:block" />
+                  Straight from our team to you.
+                </p>
+
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground/50 uppercase tracking-widest">
+                  <Sparkles className="w-3 h-3" />
+                  Published Every Weekend
+                  <Sparkles className="w-3 h-3" />
+                </div>
+              </div>
+            </div>
             <span className="block text-xs text-muted-foreground/70 italic mb-4">
               {viewMode === 'latest' && currentPosts.length > 0 && `Showing page ${currentPage} of ${totalPages} • `}
               More features coming soon!

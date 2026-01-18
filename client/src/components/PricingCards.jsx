@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ export default function PricingCards() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/pricing-plans")
+    fetch(`${API_BASE_URL}/api/pricing-plans`)
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 import { useSelector, useDispatch } from "react-redux";
@@ -32,7 +33,7 @@ export default function Profile() {
 
         setUploading(true);
         try {
-            const res = await fetch("http://localhost:8080/api/upload/image", {
+            const res = await fetch(`${API_BASE_URL}/api/upload/image`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: uploadData
@@ -70,7 +71,7 @@ export default function Profile() {
     const handleUpdate = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch("http://localhost:8080/api/users/profile", {
+            const res = await fetch(`${API_BASE_URL}/api/users/profile`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(formData)
@@ -94,7 +95,7 @@ export default function Profile() {
         }
 
         try {
-            const res = await fetch("http://localhost:8080/api/auth/change-password", {
+            const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({

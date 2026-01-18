@@ -3,6 +3,7 @@ import { Code, Palette, Smartphone, Rocket, Search, BarChart } from "lucide-reac
 import { motion } from "framer-motion";
 import Tilt from "react-parallax-tilt";
 import { Card } from "@/components/ui/card";
+import API_BASE_URL from '../config';
 
 const iconMap = {
   Code, Palette, Smartphone, Rocket, Search, BarChart
@@ -13,7 +14,7 @@ export default function ServicesGrid() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/services")
+    fetch(`${API_BASE_URL}/api/services`)
       .then(r => {
         if (!r.ok) throw new Error("Failed");
         return r.json();

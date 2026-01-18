@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
@@ -20,7 +21,7 @@ export default function Services() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8080/api/services")
+    fetch(`${API_BASE_URL}/api/services`)
       .then(res => {
         if (!res.ok) throw new Error("Failed");
         return res.json();

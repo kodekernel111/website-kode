@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useSelector } from "react-redux";
@@ -75,8 +76,6 @@ export default function WriteBlog() {
         excerpt: "",
         coverImage: "",
         tags: "",
-        coverImage: "",
-        tags: "",
         published: false,
         seriesId: "",
     });
@@ -115,7 +114,7 @@ export default function WriteBlog() {
 
     const fetchSeries = async () => {
         try {
-            const res = await fetch("http://localhost:8080/api/blog-series");
+            const res = await fetch(`${API_BASE_URL}/api/blog-series`);
             if (res.ok) setSeriesList(await res.json());
         } catch (e) {
             console.error("Failed to fetch series", e);
@@ -125,7 +124,7 @@ export default function WriteBlog() {
     const handleCreateSeries = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch("http://localhost:8080/api/blog-series", {
+            const res = await fetch(`${API_BASE_URL}/api/blog-series`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ name: newSeriesName })
@@ -146,7 +145,7 @@ export default function WriteBlog() {
 
     const fetchBlogForEdit = async (id) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/blogs/${id}/edit`, {
+            const response = await fetch(`${API_BASE_URL}/api/blogs/${id}/edit`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -164,7 +163,6 @@ export default function WriteBlog() {
                 content: data.content || "",
                 excerpt: data.excerpt || "",
                 coverImage: data.coverImage || "",
-                tags: data.tags ? data.tags.join(", ") : "",
                 tags: data.tags ? data.tags.join(", ") : "",
                 published: data.published || false,
                 seriesId: data.seriesId || "",
@@ -322,8 +320,8 @@ export default function WriteBlog() {
 
         try {
             const url = isEditMode
-                ? `http://localhost:8080/api/blogs/${editId}`
-                : "http://localhost:8080/api/blogs";
+                ? `${API_BASE_URL}/api/blogs/${editId}`
+                : `${API_BASE_URL}/api/blogs`;
 
             const method = isEditMode ? "PUT" : "POST";
 

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useMemo, useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
@@ -26,12 +27,12 @@ export default function MVPShowcase() {
     const DEFAULT_MESSAGE = `<span class="font-semibold">Beta Access:</span> Payments are not currently supported. If you are interested in purchasing an MVP/Digital Product, please contact us at <a href="mailto:contact@kodekernel.com" class="text-yellow-400 hover:text-yellow-300 underline font-medium transition-colors">contact@kodekernel.com</a> or visit our <a href="/contact" class="text-yellow-400 hover:text-yellow-300 underline cursor-pointer font-medium transition-colors">Get in Touch</a> page.`;
 
     useEffect(() => {
-        fetch("http://localhost:8080/api/products")
+        fetch(`${API_BASE_URL}/api/products`)
             .then(res => res.ok ? res.json() : [])
             .then(data => setDbProducts(data))
             .catch(err => console.error(err));
 
-        fetch("http://localhost:8080/api/config")
+        fetch(`${API_BASE_URL}/api/config`)
             .then(res => res.ok ? res.json() : [])
             .then(data => {
                 if (data.length > 0) {

@@ -1,3 +1,4 @@
+import API_BASE_URL from "../config";
 import { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { useLocation } from "wouter";
@@ -86,7 +87,6 @@ export default function Controls() {
         ],
         socialTwitter: "",
         socialLinkedin: "",
-        socialLinkedin: "",
         socialGithub: "",
         siteLogo: ""
     });
@@ -156,7 +156,7 @@ export default function Controls() {
         setIsSearching(true);
         setShowSuggestions(true);
         try {
-            const url = `http://localhost:8080/api/users?query=${encodeURIComponent(query)}`;
+            const url = `${API_BASE_URL}/api/users?query=${encodeURIComponent(query)}`;
             const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) {
                 setSuggestions(await res.json());
@@ -170,7 +170,7 @@ export default function Controls() {
 
     const fetchTeamMembers = async () => {
         try {
-            const res = await fetch("http://localhost:8080/api/users/team");
+            const res = await fetch(`${API_BASE_URL}/api/users/team`);
             if (res.ok) setTeamMembers(await res.json());
         } catch (error) {
             console.error("Failed to fetch team", error);
@@ -179,7 +179,7 @@ export default function Controls() {
 
     const fetchRoles = async () => {
         try {
-            const res = await fetch("http://localhost:8080/api/roles", { headers: { Authorization: `Bearer ${token}` } });
+            const res = await fetch(`${API_BASE_URL}/api/roles`, { headers: { Authorization: `Bearer ${token}` } });
             if (res.ok) setAvailableRoles(await res.json());
         } catch (error) {
             console.error("Failed to fetch roles", error);
@@ -188,7 +188,7 @@ export default function Controls() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch("http://localhost:8080/api/product-categories");
+            const res = await fetch(`${API_BASE_URL}/api/product-categories`);
             if (res.ok) setCategories(await res.json());
         } catch (error) {
             console.error("Failed to fetch categories", error);
@@ -198,10 +198,10 @@ export default function Controls() {
     const fetchData = async () => {
         try {
             const [plansRes, servicesRes, testimonialsRes, productsRes] = await Promise.all([
-                fetch("http://localhost:8080/api/pricing-plans"),
-                fetch("http://localhost:8080/api/services"),
-                fetch("http://localhost:8080/api/testimonials"),
-                fetch("http://localhost:8080/api/products")
+                fetch(`${API_BASE_URL}/api/pricing-plans`),
+                fetch(`${API_BASE_URL}/api/services`),
+                fetch(`${API_BASE_URL}/api/testimonials`),
+                fetch(`${API_BASE_URL}/api/products`)
             ]);
 
             if (plansRes.ok) setPlans(await plansRes.json());
@@ -209,7 +209,7 @@ export default function Controls() {
             if (testimonialsRes.ok) setTestimonials(await testimonialsRes.json());
             if (productsRes.ok) setProducts(await productsRes.json());
 
-            const confRes = await fetch("http://localhost:8080/api/config");
+            const confRes = await fetch(`${API_BASE_URL}/api/config`);
             if (confRes.ok) {
                 const confData = await confRes.json();
                 const enabled = confData.find(c => c.configKey === "beta_enabled")?.configValue === "true";
@@ -386,7 +386,6 @@ export default function Controls() {
                 faqs: faqsArr
             };
 
-            console.log("Submitting Product Payload:", payload);
 
             await submitData("products", editingId, payload, setIsProductDialogOpen);
         } catch (err) {
@@ -404,7 +403,7 @@ export default function Controls() {
 
         setUploading(true);
         try {
-            const res = await fetch("http://localhost:8080/api/upload/image", {
+            const res = await fetch(`${API_BASE_URL}/api/upload/image`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData
@@ -435,7 +434,7 @@ export default function Controls() {
 
         setUploading(true);
         try {
-            const res = await fetch("http://localhost:8080/api/upload/image", {
+            const res = await fetch(`${API_BASE_URL}/api/upload/image`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData
@@ -466,7 +465,7 @@ export default function Controls() {
 
         setUploading(true);
         try {
-            const res = await fetch("http://localhost:8080/api/upload/image", {
+            const res = await fetch(`${API_BASE_URL}/api/upload/image`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData
@@ -505,7 +504,7 @@ export default function Controls() {
 
         setUploading(true);
         try {
-            const res = await fetch("http://localhost:8080/api/upload/image", {
+            const res = await fetch(`${API_BASE_URL}/api/upload/image`, {
                 method: "POST",
                 headers: { Authorization: `Bearer ${token}` },
                 body: formData
@@ -521,7 +520,7 @@ export default function Controls() {
             setSettingsForm(prev => ({ ...prev, siteLogo: newLogoUrl }));
 
             // Auto-save the logo configuration immediately
-            await fetch("http://localhost:8080/api/config/batch", {
+            await fetch(`${API_BASE_URL}/api/config/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify([{ configKey: "site_logo", configValue: newLogoUrl }])
@@ -566,7 +565,7 @@ export default function Controls() {
         if (!newRoleName.trim()) return;
 
         try {
-            const res = await fetch("http://localhost:8080/api/roles", {
+            const res = await fetch(`${API_BASE_URL}/api/roles`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify({ name: newRoleName.toUpperCase().replace(/\s+/g, '_') }) // Store as uppercase enum-style
@@ -600,7 +599,7 @@ export default function Controls() {
                 { configKey: "social_github", configValue: settingsForm.socialGithub },
                 { configKey: "site_logo", configValue: settingsForm.siteLogo }
             ];
-            const res = await fetch("http://localhost:8080/api/config/batch", {
+            const res = await fetch(`${API_BASE_URL}/api/config/batch`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(payload)
@@ -614,7 +613,7 @@ export default function Controls() {
     };
 
     const submitData = async (endpoint, id, payload, setOpen) => {
-        const url = `http://localhost:8080/api/${endpoint}` + (id ? `/${id}` : "");
+        const url = `${API_BASE_URL}/api/${endpoint}` + (id ? `/${id}` : "");
         const method = id ? "PUT" : "POST";
         try {
             const res = await fetch(url, { method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
@@ -630,7 +629,7 @@ export default function Controls() {
     const deleteData = async (endpoint, id) => {
         if (!confirm("Delete?")) return;
         try {
-            await fetch(`http://localhost:8080/api/${endpoint}/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+            await fetch(`${API_BASE_URL}/api/${endpoint}/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
             toast({ title: "Success", description: "Deleted" });
             fetchData();
         } catch (err) { toast({ title: "Error", description: "Failed to delete", variant: "destructive" }); }
