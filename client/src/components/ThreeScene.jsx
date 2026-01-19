@@ -18,7 +18,7 @@ export default function ThreeScene({ className = "" }) {
 
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
     renderer.setSize(mount.clientWidth, mount.clientHeight, false);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     // We'll place the renderer as a fixed fullscreen background so the 3D scene
@@ -28,8 +28,8 @@ export default function ThreeScene({ className = "" }) {
     renderer.domElement.style.position = "fixed";
     renderer.domElement.style.left = "0";
     renderer.domElement.style.top = "0";
-  // place canvas behind the overlay and content
-  renderer.domElement.style.zIndex = "-2";
+    // place canvas behind the overlay and content
+    renderer.domElement.style.zIndex = "-2";
     renderer.domElement.style.pointerEvents = "none";
 
     // prefer an existing background container so multiple mounts don't create duplicates
@@ -150,8 +150,8 @@ export default function ThreeScene({ className = "" }) {
           // apply our material style to the meshes to match the look
           gltfScene.traverse((c) => {
             if (c.isMesh) {
-              c.castShadow = true;
-              c.receiveShadow = true;
+              // c.castShadow = true; // Disabled for performance
+              // c.receiveShadow = true; // Disabled for performance
               // create a fresh standard material to ensure consistent shading
               const mat = new THREE.MeshStandardMaterial({
                 color: 0x4f46e5,
@@ -164,7 +164,7 @@ export default function ThreeScene({ className = "" }) {
               if (c.material && c.material.map) mat.map = c.material.map;
               c.material = mat;
               // apply rim to model material too
-              try { applyRim(c.material, new THREE.Color(0x9f7aea), 0.6, 2.2); } catch (e) {}
+              try { applyRim(c.material, new THREE.Color(0x9f7aea), 0.6, 2.2); } catch (e) { }
             }
           });
 
@@ -176,7 +176,7 @@ export default function ThreeScene({ className = "" }) {
           scene.remove(knot);
           centerObject = gltfScene;
           // dispose fallback geometry/material
-          try { geometry.dispose(); material.dispose(); } catch (e) {}
+          try { geometry.dispose(); material.dispose(); } catch (e) { }
         } catch (e) {
           console.warn("Error applying GLTF scene", e);
         }
@@ -187,9 +187,9 @@ export default function ThreeScene({ className = "" }) {
       }
     );
 
-  // Tag-universe: render HTML-like tags as sprites that orbit the scene
+    // Tag-universe: render HTML-like tags as sprites that orbit the scene
     // Particles
-    const particleCount = 120;
+    const particleCount = 80;
     const particles = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
     for (let i = 0; i < particleCount; i++) {
@@ -378,7 +378,7 @@ export default function ThreeScene({ className = "" }) {
       // update lenis
       try {
         lenis.raf(time);
-      } catch (e) {}
+      } catch (e) { }
 
       // smoothly approach target rotation (lerp)
       knot.rotation.x += (targetRot.x - knot.rotation.x) * 0.06;
@@ -394,15 +394,15 @@ export default function ThreeScene({ className = "" }) {
       knot.scale.setScalar(scale);
 
       // particle motion: gentle orbit + vertical drift
-        // orbit the tag group to create the 'universe' motion
-        tagGroup.rotation.y += 0.0016 + 0.0005 * Math.sin(t * 0.7);
-        // make each tag gently face the camera and spin slowly
-        tagGroup.children.forEach((child, idx) => {
-          // small individual oscillation
-          child.position.x += Math.sin(t * 0.4 + idx) * 0.0002;
-          child.position.y += Math.cos(t * 0.3 + idx) * 0.0002;
-          child.material.rotation += 0.0009 + (idx % 2 ? -0.0006 : 0.0006);
-        });
+      // orbit the tag group to create the 'universe' motion
+      tagGroup.rotation.y += 0.0016 + 0.0005 * Math.sin(t * 0.7);
+      // make each tag gently face the camera and spin slowly
+      tagGroup.children.forEach((child, idx) => {
+        // small individual oscillation
+        child.position.x += Math.sin(t * 0.4 + idx) * 0.0002;
+        child.position.y += Math.cos(t * 0.3 + idx) * 0.0002;
+        child.material.rotation += 0.0009 + (idx % 2 ? -0.0006 : 0.0006);
+      });
 
       // use composer when available to include post-processing
       try {
@@ -418,7 +418,7 @@ export default function ThreeScene({ className = "" }) {
           const targetY = -n * 2.0; // move camera down as user scrolls
           camera.position.y += (targetY - camera.position.y) * 0.06;
           camera.position.z += (targetZ - camera.position.z) * 0.06;
-        } catch (e) {}
+        } catch (e) { }
 
         // use composer when available to include post-processing
         try {
@@ -434,27 +434,27 @@ export default function ThreeScene({ className = "" }) {
     // cleanup
     return () => {
       cancelAnimationFrame(rafId);
-  window.removeEventListener("resize", onResize);
-  window.removeEventListener("pointermove", onPointerMove);
-  // remove renderer DOM element from whichever parent it was appended to
-  try {
-    if (renderer.domElement && renderer.domElement.parentElement) {
-      renderer.domElement.parentElement.removeChild(renderer.domElement);
-    }
-  } catch (e) {}
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("pointermove", onPointerMove);
+      // remove renderer DOM element from whichever parent it was appended to
+      try {
+        if (renderer.domElement && renderer.domElement.parentElement) {
+          renderer.domElement.parentElement.removeChild(renderer.domElement);
+        }
+      } catch (e) { }
       // dispose geometries/materials
       try {
         geometry.dispose();
-      } catch (e) {}
+      } catch (e) { }
       try {
         material.dispose();
-      } catch (e) {}
+      } catch (e) { }
       try {
         particles.dispose();
-      } catch (e) {}
+      } catch (e) { }
       try {
         pMaterial.dispose();
-      } catch (e) {}
+      } catch (e) { }
 
       // dispose tag resources (textures & materials)
       try {
@@ -479,20 +479,20 @@ export default function ThreeScene({ className = "" }) {
         if (createdBg && bgContainer && bgContainer.parentElement) {
           bgContainer.parentElement.removeChild(bgContainer);
         }
-      } catch (e) {}
+      } catch (e) { }
 
       // remove overlay if we created it
       try {
         if (createdOverlay && overlay && overlay.parentElement) {
           overlay.parentElement.removeChild(overlay);
         }
-      } catch (e) {}
+      } catch (e) { }
 
       // remove lenis listeners and destroy
       try {
         lenis.off && lenis.off("scroll", onLenisScroll);
         lenis.destroy && lenis.destroy();
-      } catch (e) {}
+      } catch (e) { }
 
       // dispose any loaded GLTF scene or centerObject meshes
       try {
@@ -503,7 +503,7 @@ export default function ThreeScene({ className = "" }) {
               if (c.isMesh) {
                 try {
                   if (c.geometry) c.geometry.dispose();
-                } catch (e) {}
+                } catch (e) { }
                 try {
                   if (c.material) {
                     if (Array.isArray(c.material)) {
@@ -512,12 +512,12 @@ export default function ThreeScene({ className = "" }) {
                       c.material.dispose();
                     }
                   }
-                } catch (e) {}
+                } catch (e) { }
               }
             });
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       // dispose composer and passes
       try {
@@ -525,11 +525,11 @@ export default function ThreeScene({ className = "" }) {
           composer.passes && composer.passes.forEach((p) => {
             try {
               if (p.dispose) p.dispose();
-            } catch (e) {}
+            } catch (e) { }
           });
           if (composer.dispose) composer.dispose();
         }
-      } catch (e) {}
+      } catch (e) { }
 
       renderer.dispose();
     };

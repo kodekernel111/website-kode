@@ -66,7 +66,7 @@ const SubNode = ({ label, delay, color }) => (
         whileInView={{ opacity: 1, scale: 1 }}
         transition={{ delay, duration: 0.4 }}
         viewport={{ once: true }}
-        className="flex items-center gap-1.5 md:gap-2 bg-black/40 backdrop-blur-md border border-white/10 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg shadow-sm text-[10px] md:text-xs font-medium text-muted-foreground hover:text-white hover:border-white/20 transition-colors"
+        className="flex items-center gap-1.5 md:gap-2 bg-zinc-900/80 border border-white/10 px-2.5 py-1 md:px-3 md:py-1.5 rounded-lg shadow-sm text-[10px] md:text-xs font-medium text-muted-foreground hover:text-white hover:border-white/20 transition-colors"
     >
         <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full shadow-[0_0_8px_currentColor] ${color}`} />
         {label}
@@ -89,7 +89,7 @@ const ProcessNode = ({ step, index, isLeft }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5 }}
-                className={`flex-1 w-full flex flex-col ${textAlign}`}
+                className={`flex-1 w-full flex flex-col will-change-transform ${textAlign}`}
             >
                 <div className="group relative w-full max-w-xl mx-auto md:mx-0">
                     {/* Glowing Border Gradient */}
@@ -202,10 +202,12 @@ export default function ProcessSection() {
 
     return (
         <section ref={containerRef} className="py-20 lg:py-32 bg-[#050505] relative overflow-hidden">
-            {/* Cosmic Background */}
+            {/* Cosmic Background - Optimized */}
             <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] bg-purple-900/10 rounded-full blur-[120px] mix-blend-screen" />
-                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-teal-900/10 rounded-full blur-[100px] mix-blend-screen" />
+                <div className="absolute top-0 left-1/4 w-[800px] h-[800px] rounded-full mix-blend-screen opacity-20"
+                    style={{ background: 'radial-gradient(circle, rgba(88,28,135,0.4) 0%, rgba(0,0,0,0) 70%)' }} />
+                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] rounded-full mix-blend-screen opacity-20"
+                    style={{ background: 'radial-gradient(circle, rgba(19,78,74,0.4) 0%, rgba(0,0,0,0) 70%)' }} />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10" />
             </div>
 
@@ -232,7 +234,7 @@ export default function ProcessSection() {
 
                     {/* Active Liquid Line */}
                     <motion.div
-                        className="absolute left-[50%] top-4 w-[2px] bg-gradient-to-b from-[#2a9d8f] via-blue-500 to-purple-500 -translate-x-1/2 block origin-top shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+                        className="absolute left-[50%] top-4 w-[2px] bg-gradient-to-b from-[#2a9d8f] via-blue-500 to-purple-500 -translate-x-1/2 block origin-top will-change-transform"
                         style={{
                             height: "calc(100% - 2rem)",
                             scaleY: scrollYProgress,
