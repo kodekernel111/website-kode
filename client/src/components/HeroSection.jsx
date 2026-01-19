@@ -2,7 +2,7 @@ import API_BASE_URL from "../config";
 
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play } from "lucide-react";
+import { Calendar, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ThreeScene from "./ThreeScene";
@@ -19,7 +19,8 @@ export default function HeroSection() {
       { value: "20+", label: "Projects Completed" },
       { value: "99%", label: "Client Satisfaction" },
       { value: "24/7", label: "Support Available" }
-    ]
+    ],
+    statsVisible: true
   });
 
   useEffect(() => {
@@ -31,6 +32,7 @@ export default function HeroSection() {
         const title2 = data.find(c => c.configKey === "hero_title2")?.configValue;
         const desc = data.find(c => c.configKey === "hero_desc")?.configValue;
         const statsJson = data.find(c => c.configKey === "hero_stats")?.configValue;
+        const statsVisible = data.find(c => c.configKey === "hero_stats_visible")?.configValue !== "false";
 
         let stats = heroConfig.stats;
         if (statsJson) { try { stats = JSON.parse(statsJson); } catch (e) { } }
@@ -41,7 +43,8 @@ export default function HeroSection() {
           title1: title1 || prev.title1,
           title2: title2 || prev.title2,
           desc: desc || prev.desc,
-          stats: stats
+          stats: stats,
+          statsVisible: statsVisible
         }));
       })
       .catch(e => console.error(e));
@@ -98,7 +101,7 @@ export default function HeroSection() {
           <span className="text-sm font-medium" data-testid="text-badge">{heroConfig.badge}</span>
         </div>
 
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 leading-tight" data-testid="text-hero-title">
+        <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold tracking-tight mb-8 leading-tight" data-testid="text-hero-title">
           {heroConfig.title1}
           <br />
           <span className="bg-gradient-to-r from-primary via-primary to-accent bg-clip-text text-transparent">
@@ -111,41 +114,44 @@ export default function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
+            <Button
+              size="lg"
+              className="gap-2 rounded-full px-8 relative group overflow-hidden"
+              onClick={() => window.open("https://cal.com/kodekernel/30min", "_blank")}
+            >
+              <motion.span
+                initial={{ x: 0 }}
+                animate={{ x: 0 }}
+                whileHover={{ x: 4 }}
+                className="inline-flex items-center"
+              >
+                Book Free Call
+                <Calendar className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+              </motion.span>
+            </Button>
+          </motion.div>
+
           <Link href="/contact">
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="glow-border rounded-full"
             >
-              <Button size="lg" className="gap-2 rounded-full px-8 relative group overflow-hidden" data-testid="button-get-started">
+              <Button size="lg" variant="outline" className="gap-2 rounded-full px-8 backdrop-blur relative group">
                 <motion.span
                   initial={{ x: 0 }}
                   animate={{ x: 0 }}
                   whileHover={{ x: 4 }}
                   className="inline-flex items-center"
                 >
-                  Get Started
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                </motion.span>
-              </Button>
-            </motion.div>
-          </Link>
-          <Link href="/services">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="glow-border rounded-full" s
-            >
-              <Button size="lg" variant="outline" className="gap-2 rounded-full px-8 backdrop-blur relative group" data-testid="button-view-work">
-                <motion.span
-                  initial={{ x: 0 }}
-                  animate={{ x: 0 }}
-                  whileHover={{ x: 4 }}
-                  className="inline-flex items-center"
-                >
-                  <Play className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
-                  View Our Work
+                  <Mail className="w-4 h-4 mr-2 transition-transform group-hover:scale-110" />
+                  Email Us
                 </motion.span>
               </Button>
               <div className="glow-inner" />
@@ -153,18 +159,22 @@ export default function HeroSection() {
           </Link>
         </div>
 
-        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-          {heroConfig.stats.map((stat, index) => (
-            <div key={index} className="text-center" data-testid={`stat-${index}`}>
-              <div className="text-3xl md:text-4xl font-bold text-primary mb-2" data-testid={`stat-value-${index}`}>
-                {stat.value}
-              </div>
-              <div className="text-sm text-muted-foreground" data-testid={`stat-label-${index}`}>
-                {stat.label}
-              </div>
+        {heroConfig.statsVisible && (
+          <div className="mt-20 w-full max-w-2xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-4 bg-white/[0.03] border border-white/10 backdrop-blur-md rounded-lg divide-x divide-white/5 overflow-hidden">
+              {heroConfig.stats.map((stat, index) => (
+                <div key={index} className="px-4 py-3 hover:bg-white/[0.02] transition-colors duration-300" data-testid={`stat-${index}`}>
+                  <div className="text-xl md:text-2xl font-bold text-white mb-0.5 tracking-tight" data-testid={`stat-value-${index}`}>
+                    {stat.value}
+                  </div>
+                  <div className="text-[9px] md:text-[10px] font-medium text-slate-500 uppercase tracking-widest" data-testid={`stat-label-${index}`}>
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </motion.div>
     </section>
   );

@@ -88,7 +88,9 @@ export default function Controls() {
         socialTwitter: "",
         socialLinkedin: "",
         socialGithub: "",
-        siteLogo: ""
+        siteLogo: "",
+        navHiddenItems: "",
+        heroStatsVisible: true
     });
 
     // Style Lock State for Service Dialog
@@ -227,6 +229,7 @@ export default function Controls() {
                 const socialLinkedin = confData.find(c => c.configKey === "social_linkedin")?.configValue || "";
                 const socialGithub = confData.find(c => c.configKey === "social_github")?.configValue || "";
                 const siteLogo = confData.find(c => c.configKey === "site_logo")?.configValue || "/company-logo.png";
+                const navHiddenItems = confData.find(c => c.configKey === "nav_hidden_items")?.configValue || "";
 
                 let heroStats = [
                     { value: "10+", label: "Happy Clients" },
@@ -234,6 +237,7 @@ export default function Controls() {
                     { value: "99%", label: "Client Satisfaction" },
                     { value: "24/7", label: "Support Available" }
                 ];
+                const heroStatsVisible = confData.find(c => c.configKey === "hero_stats_visible")?.configValue !== "false";
                 const statsJson = confData.find(c => c.configKey === "hero_stats")?.configValue;
                 if (statsJson) {
                     try { heroStats = JSON.parse(statsJson); } catch (e) { console.error("Failed to parse hero stats", e); }
@@ -250,14 +254,24 @@ export default function Controls() {
                     heroTitle2,
                     heroDesc,
                     heroStats,
+                    heroStatsVisible,
                     socialTwitter,
                     socialLinkedin,
                     socialGithub,
-                    siteLogo
+                    socialGithub,
+                    siteLogo,
+                    navHiddenItems
                 });
             }
         } catch (error) {
-            toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
+            console.error(error);
+            if (error.message?.includes("401") || error.message?.includes("403")) {
+                toast({ title: "Session Expired", description: "Please login again.", variant: "destructive" });
+                // Optional: dispatch(logout()) if I had access to dispatch here, but I can use window.location
+                setTimeout(() => window.location.href = "/login", 1000);
+            } else {
+                toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
+            }
         }
     };
 
@@ -593,11 +607,15 @@ export default function Controls() {
                 { configKey: "hero_title2", configValue: settingsForm.heroTitle2 },
                 { configKey: "hero_desc", configValue: settingsForm.heroDesc },
                 { configKey: "hero_desc", configValue: settingsForm.heroDesc },
+                { configKey: "hero_desc", configValue: settingsForm.heroDesc },
                 { configKey: "hero_stats", configValue: JSON.stringify(settingsForm.heroStats) },
+                { configKey: "hero_stats_visible", configValue: settingsForm.heroStatsVisible.toString() },
                 { configKey: "social_twitter", configValue: settingsForm.socialTwitter },
                 { configKey: "social_linkedin", configValue: settingsForm.socialLinkedin },
                 { configKey: "social_github", configValue: settingsForm.socialGithub },
-                { configKey: "site_logo", configValue: settingsForm.siteLogo }
+                { configKey: "social_github", configValue: settingsForm.socialGithub },
+                { configKey: "site_logo", configValue: settingsForm.siteLogo },
+                { configKey: "nav_hidden_items", configValue: settingsForm.navHiddenItems }
             ];
             const res = await fetch(`${API_BASE_URL}/api/config/batch`, {
                 method: "POST",
@@ -855,6 +873,37 @@ export default function Controls() {
                         <Card className="bg-card border-border/50">
                             <CardHeader><CardTitle>Store Configuration</CardTitle></CardHeader>
                             <CardContent className="space-y-6">
+                                {/* Navigation Visibility Control */}
+                                <div className="space-y-4 pt-0 border-b border-border/50 pb-6">
+                                    <h3 className="text-lg font-semibold text-white">Navigation Menu Visibility</h3>
+                                    <p className="text-sm text-muted-foreground mb-4">Toggle which menu items are visible in the top navigation bar.</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {["Home", "Products", "Services", "Pricing", "Blog", "Testimonials", "About"].map((item) => {
+                                            const isHidden = (settingsForm.navHiddenItems || "").toLowerCase().split(",").map(s => s.trim()).includes(item.toLowerCase());
+                                            return (
+                                                <div key={item} className="flex items-center justify-between p-3 border rounded-lg border-border/50 bg-background/20">
+                                                    <Label className="text-sm text-white cursor-pointer" htmlFor={`nav-toggle-${item}`}>{item}</Label>
+                                                    <Switch
+                                                        id={`nav-toggle-${item}`}
+                                                        checked={!isHidden}
+                                                        onCheckedChange={(checked) => {
+                                                            const currentHidden = (settingsForm.navHiddenItems || "").toLowerCase().split(",").map(s => s.trim()).filter(s => s);
+                                                            let newHidden;
+                                                            if (checked) {
+                                                                // Make visible: remove from hidden list
+                                                                newHidden = currentHidden.filter(s => s !== item.toLowerCase());
+                                                            } else {
+                                                                // Make hidden: add to hidden list
+                                                                newHidden = [...currentHidden, item.toLowerCase()];
+                                                            }
+                                                            setSettingsForm({ ...settingsForm, navHiddenItems: newHidden.join(",") });
+                                                        }}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                                 <div className="flex items-center justify-between p-4 border rounded-lg border-border/50 bg-background/20">
                                     <div className="space-y-0.5">
                                         <Label className="text-base text-white">Enable Beta Access Banner</Label>
@@ -941,6 +990,11 @@ export default function Controls() {
                                     <div className="space-y-2"><Label>Title Line 2 (Gradient)</Label><Input value={settingsForm.heroTitle2} onChange={e => setSettingsForm({ ...settingsForm, heroTitle2: e.target.value })} className="bg-background/50" /></div>
                                 </div>
                                 <div className="space-y-2"><Label>Description</Label><Textarea value={settingsForm.heroDesc} onChange={e => setSettingsForm({ ...settingsForm, heroDesc: e.target.value })} className="bg-background/50" /></div>
+
+                                <div className="flex items-center justify-between p-3 border rounded-lg border-border/50 bg-background/20 mb-4">
+                                    <Label className="text-white">Show Statistics Bar</Label>
+                                    <Switch checked={settingsForm.heroStatsVisible} onCheckedChange={c => setSettingsForm({ ...settingsForm, heroStatsVisible: c })} />
+                                </div>
 
                                 <Label>Statistics</Label>
                                 <div className="grid grid-cols-2 gap-4">

@@ -37,7 +37,7 @@ export default function Footer() {
               <span className="text-xl font-bold no-underline text-foreground hover:text-foreground focus:text-foreground" style={{ textDecoration: 'none' }}>Kodekernel</span>
             </Link>
             <p className="text-muted-foreground mb-6 leading-relaxed">
-              Delivering premium web design and development SaaS solutions to transform your digital presence.
+              Shipping MVPs quickly without cutting corners on quality.
             </p>
             <div className="flex gap-3">
               {socials.twitter && (

@@ -15,7 +15,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Calendar } from "lucide-react";
+
+const BookMeetingCard = () => (
+  <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }} className="group">
+    <Card className="glow-border p-6 bg-[#0f0f16] border border-gray-800 shadow-sm hover:shadow-lg transition relative overflow-hidden rounded-xl">
+      <div className="glow-inner" />
+      <div className="flex flex-col gap-4">
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-tr from-indigo-700/20 to-cyan-500/10 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-105">
+            <Calendar className="w-5 h-5 text-indigo-300 drop-shadow-lg" />
+          </div>
+          <div>
+            <h3 className="font-semibold mb-1">Book a Call</h3>
+            <p className="text-sm text-muted-foreground">
+              Skip the email tag. Schedule a direct meeting with us.
+            </p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-2">
+          <Button
+            variant="outline"
+            className="w-full text-xs font-semibold border-white/10 hover:bg-white/5 hover:text-white"
+            onClick={() => window.open("https://cal.com/kodekernel/15min", "_blank")}
+          >
+            15 Min Discovery
+          </Button>
+          <Button
+            variant="default" // Primary color for 30min
+            className="w-full text-xs font-semibold"
+            onClick={() => window.open("https://cal.com/kodekernel/30min", "_blank")}
+          >
+            30 Min Strategy
+          </Button>
+        </div>
+      </div>
+    </Card>
+  </motion.div>
+);
 
 const DIAL_CODES = {
   IN: "+91", US: "+1", UK: "+44", CA: "+1", AU: "+61",
@@ -110,6 +147,11 @@ export default function ContactForm() {
           </AnimatedSection>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Mobile Only: Book Meeting Above Form */}
+            <div className="lg:hidden">
+              <BookMeetingCard />
+            </div>
+
             <div className="lg:col-span-2">
               <AnimatedSection animation="fadeUp" delay={60}>
                 <Card className="glow-border p-8 relative overflow-hidden transition-all duration-300 rounded-2xl border-transparent hover:shadow-2xl">
@@ -207,6 +249,11 @@ export default function ContactForm() {
             </div>
 
             <div className="space-y-6">
+              {/* Desktop Only: Book Meeting in Sidebar */}
+              <div className="hidden lg:block">
+                <BookMeetingCard />
+              </div>
+
               <motion.div whileHover={{ y: -6, scale: 1.01 }} transition={{ type: 'spring', stiffness: 300 }} className="group">
                 <Card className="glow-border p-6 bg-[#0f0f16] border border-gray-800 shadow-sm hover:shadow-lg transition relative overflow-hidden rounded-xl">
                   <div className="glow-inner" />

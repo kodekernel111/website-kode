@@ -30,11 +30,13 @@ export default function Blog() {
   const [totalPages, setTotalPages] = useState(0);
   const ITEMS_PER_PAGE = 9;
 
-  // Series State
+  // Domain State
+  const [selectedDomain, setSelectedDomain] = useState("Engineering"); // Engineering, Business
   const [viewMode, setViewMode] = useState("latest"); // latest, series, series_detail
   const [seriesList, setSeriesList] = useState([]);
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [seriesPosts, setSeriesPosts] = useState([]);
+  const [seriesPage, setSeriesPage] = useState(1);
 
   const { toast } = useToast();
 
@@ -56,6 +58,7 @@ export default function Blog() {
                 title: post.title,
                 excerpt: post.excerpt,
                 category: post.tags && post.tags.length > 0 ? post.tags[0] : "Article",
+                tags: post.tags || [],
                 author: post.authorName,
                 authorInitials: getInitials(post.authorName),
                 date: formatDate(post.publishedAt || post.createdAt),
@@ -86,7 +89,7 @@ export default function Blog() {
     }, 500);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
+  }, [searchQuery, selectedDomain]); // Trigger on domain change too
 
   // Handle Page Change
   useEffect(() => {
@@ -97,9 +100,11 @@ export default function Blog() {
     setLoading(true);
     try {
       const pageIndex = page - 1;
-      const url = query
-        ? `${API_BASE_URL}/api/blogs/search?q=${encodeURIComponent(query)}&page=${pageIndex}&size=${ITEMS_PER_PAGE}`
-        : `${API_BASE_URL}/api/blogs?page=${pageIndex}&size=${ITEMS_PER_PAGE}`;
+
+      // If there is a user-typed query, use it. Otherwise, use the selected domain as the query (Tag search).
+      const finalQuery = query.trim() ? query : selectedDomain;
+
+      const url = `${API_BASE_URL}/api/blogs/search?q=${encodeURIComponent(finalQuery)}&page=${pageIndex}&size=${ITEMS_PER_PAGE}`;
 
       const response = await fetch(url);
 
@@ -118,6 +123,7 @@ export default function Blog() {
         title: post.title,
         excerpt: post.excerpt,
         category: post.tags && post.tags.length > 0 ? post.tags[0] : "Article",
+        tags: post.tags || [],
         author: post.authorName,
         authorInitials: getInitials(post.authorName),
         date: formatDate(post.publishedAt || post.createdAt),
@@ -166,9 +172,36 @@ export default function Blog() {
     return `${minutes} min`;
   };
 
+  const handleSeriesClick = (series) => {
+    setSelectedSeries(series);
+    setSeriesPage(1); // Reset to first page
+    setViewMode('series_detail');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Filter Series based on Domain
+  const filteredSeriesList = seriesList.filter(series => {
+    // Check if any post in the series has the selected domain tag
+    // Or if the series name/desc includes it (optional, but safer to rely on posts tags for now if possible)
+    // Since Series entity doesn't have tags, we check its posts.
+    if (!series.posts || series.posts.length === 0) return false;
+
+    // Case-insensitive check
+    const domainLower = selectedDomain.toLowerCase();
+    return series.posts.some(post =>
+      post.tags && post.tags.some(tag => tag.toLowerCase() === domainLower)
+    );
+  });
+
   // Determine posts to display
   const currentPosts = dbBlogPosts;
   const emptySlots = ITEMS_PER_PAGE - currentPosts.length;
+
+  // Series Pagination Logic (Lifted State)
+  const totalSeriesPosts = selectedSeries?.posts?.length || 0;
+  const seriesTotalPages = Math.ceil(totalSeriesPosts / ITEMS_PER_PAGE);
+  const seriesStartIndex = (seriesPage - 1) * ITEMS_PER_PAGE;
+  const seriesPaginatedPosts = selectedSeries?.posts?.slice(seriesStartIndex, seriesStartIndex + ITEMS_PER_PAGE) || [];
 
   return (
     <div className="min-h-screen">
@@ -209,12 +242,35 @@ export default function Blog() {
                 </div>
               </div>
             </div>
+
+            {/* DOMAIN TABS (Engineering vs Business) */}
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex items-center p-1 bg-white/5 border border-white/10 rounded-full backdrop-blur-sm">
+                {["Engineering", "Business"].map((domain) => (
+                  <button
+                    key={domain}
+                    onClick={() => {
+                      setSelectedDomain(domain);
+                      setCurrentPage(1);
+                      setViewMode("latest"); // Reset to latest view on domain switch
+                    }}
+                    className={`px-8 py-3 rounded-full text-sm font-semibold transition-all duration-300 ${selectedDomain === domain
+                      ? "bg-primary text-white shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)]"
+                      : "text-muted-foreground hover:text-white hover:bg-white/5"
+                      }`}
+                  >
+                    {domain}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <span className="block text-xs text-muted-foreground/70 italic mb-4">
               {viewMode === 'latest' && currentPosts.length > 0 && `Showing page ${currentPage} of ${totalPages} • `}
               More features coming soon!
             </span>
 
-            {/* View Toggle */}
+            {/* View Toggle (Sub-navigation) */}
             <div className="flex justify-center gap-4 mt-6">
               <Button
                 variant={viewMode === 'latest' ? 'default' : 'outline'}
@@ -269,84 +325,155 @@ export default function Blog() {
                 </div>
               )}
 
-              {/* Series List View (With Posts) */}
+              {/* Series List View (Gallery Mode) */}
               {viewMode === 'series' && (
-                <div className="space-y-16">
-                  {seriesList.length === 0 ? (
-                    <div className="text-center text-muted-foreground">No series found.</div>
+                <div className="space-y-8">
+                  {filteredSeriesList.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-12">
+                      No {selectedDomain} series found.
+                    </div>
                   ) : (
-                    seriesList.map((series, idx) => (
-                      <div key={series.id} className="relative">
-                        {/* Decorative connector line between series (except last) */}
-                        {idx !== seriesList.length - 1 && (
-                          <div className="absolute left-8 top-[100px] bottom-[-64px] w-px bg-gradient-to-b from-primary/50 to-transparent opacity-20 hidden lg:block" />
-                        )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredSeriesList.map((series) => (
+                        <div
+                          key={series.id}
+                          onClick={() => handleSeriesClick(series)}
+                          className="group cursor-pointer relative flex flex-col justify-between h-full p-6 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-primary/50 transition-all duration-300 backdrop-blur-sm overflow-hidden"
+                        >
+                          {/* Hover Glow */}
+                          <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                        <div className="space-y-8">
-                          {/* Series Header Card */}
-                          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-transparent p-8 md:p-10 backdrop-blur-sm">
-                            {/* Background glow effect */}
-                            <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+                          <div className="relative z-10 space-y-4">
+                            <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                              <Layers className="w-6 h-6" />
+                            </div>
 
-                            <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                              <div className="space-y-4 max-w-3xl">
-                                <div className="flex items-center gap-3">
-                                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-primary">
-                                    <Layers className="h-4 w-4" />
-                                  </span>
-                                  <span className="text-sm font-medium tracking-wider text-primary uppercase">Feature Series</span>
-                                </div>
-
-                                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
-                                  {series.name}
-                                </h2>
-
-                                {series.description && (
-                                  <p className="text-lg text-muted-foreground leading-relaxed border-l-2 border-primary/30 pl-4">
-                                    {series.description}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div className="flex items-center gap-2 bg-black/20 px-4 py-2 rounded-full border border-white/5 self-start shrink-0">
-                                <div className="flex -space-x-2">
-                                  {[...Array(Math.min(3, series.posts.length))].map((_, i) => (
-                                    <div key={i} className="h-6 w-6 rounded-full bg-zinc-800 border border-zinc-900 ring-2 ring-background flex items-center justify-center">
-                                      <span className="text-[10px] text-zinc-500">
-                                        <BookOpen className="w-3 h-3" />
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                                <span className="text-sm font-medium text-zinc-400 pl-2">
-                                  {series.posts.length} {series.posts.length === 1 ? 'Article' : 'Articles'}
-                                </span>
-                              </div>
+                            <div>
+                              <h3 className="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                                {series.name}
+                              </h3>
+                              <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
+                                {series.description || "Explore this collection of in-depth articles."}
+                              </p>
                             </div>
                           </div>
 
-                          {/* Posts Grid */}
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pl-0">
-                            {series.posts && series.posts.length > 0 ? (
-                              series.posts.map((post, index) => (
-                                <AnimatedSection key={post.id} delay={index * 100}>
-                                  <BlogCard {...post} />
-                                </AnimatedSection>
-                              ))
-                            ) : (
-                              <div className="col-span-full py-12 text-center rounded-xl border border-dashed border-white/10 bg-white/5">
-                                <p className="text-muted-foreground text-sm italic">
-                                  No published articles in this series yet.
-                                  <br />
-                                  <span className="text-xs opacity-50">Check back soon!</span>
-                                </p>
-                              </div>
-                            )}
+                          <div className="relative z-10 pt-4 mt-auto border-t border-white/10 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                            <span className="flex items-center gap-1.5">
+                              <BookOpen className="w-3.5 h-3.5" />
+                              {series.posts.length} {series.posts.length === 1 ? 'Article' : 'Articles'}
+                            </span>
+                            <span className="text-primary opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 flex items-center gap-1">
+                              View Series <ArrowLeft className="w-3 h-3 rotate-180" />
+                            </span>
                           </div>
                         </div>
-                      </div>
-                    ))
+                      ))}
+                    </div>
                   )}
+                </div>
+              )}
+
+              {/* Series Detail View */}
+              {viewMode === 'series_detail' && selectedSeries && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <Button
+                    variant="ghost"
+                    onClick={() => setViewMode('series')}
+                    className="mb-8 hover:bg-white/5 text-muted-foreground hover:text-white gap-2 group"
+                  >
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to All Series
+                  </Button>
+
+                  <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-gray-900 to-black p-8 md:p-12 mb-16">
+                    {/* Hero Background */}
+                    <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 w-96 h-96 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
+
+                    <div className="relative z-10 max-w-3xl">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-medium text-primary mb-6">
+                        <Layers className="w-3 h-3" />
+                        Feature Series
+                      </div>
+                      <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                        {selectedSeries.name}
+                      </h2>
+                      <p className="text-lg text-muted-foreground/90 leading-relaxed border-l-4 border-primary/50 pl-6">
+                        {selectedSeries.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Posts Grid */}
+                    {seriesPaginatedPosts.length > 0 ? (
+                      seriesPaginatedPosts.map((post, index) => (
+                        <AnimatedSection key={post.id} delay={index * 100}>
+                          <BlogCard {...post} />
+                        </AnimatedSection>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-20 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
+                        <BookOpen className="w-12 h-12 mx-auto text-muted-foreground/30 mb-4" />
+                        <p className="text-muted-foreground">No articles in this series yet.</p>
+                      </div>
+                    )}
+
+                    {/* Series Pagination UI - Always Visible */}
+                    <div className="col-span-full mt-12">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (seriesPage > 1) {
+                                  setSeriesPage(p => p - 1);
+                                  const hero = document.getElementById('series-hero');
+                                  if (hero) hero.scrollIntoView({ behavior: 'smooth' });
+                                }
+                              }}
+                              className={`${seriesPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-white hover:text-white hover:bg-white/10`}
+                            />
+                          </PaginationItem>
+
+                          {/* Show at least page 1 even if 0 pages */}
+                          {Array.from({ length: Math.max(1, seriesTotalPages) }, (_, i) => i + 1).map((page) => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                href="#"
+                                isActive={seriesPage === page}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setSeriesPage(page);
+                                  const hero = document.getElementById('series-hero');
+                                  if (hero) hero.scrollIntoView({ behavior: 'smooth' });
+                                }}
+                                className={`text-white hover:text-white hover:bg-white/10 ${seriesPage === page ? "bg-white/20 border-white/40" : ""}`}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+
+                          <PaginationItem>
+                            <PaginationNext
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (seriesPage < seriesTotalPages) {
+                                  setSeriesPage(p => p + 1);
+                                  const hero = document.getElementById('series-hero');
+                                  if (hero) hero.scrollIntoView({ behavior: 'smooth' });
+                                }
+                              }}
+                              className={`${seriesPage >= Math.max(1, seriesTotalPages) ? "pointer-events-none opacity-50" : "cursor-pointer"} text-white hover:text-white hover:bg-white/10`}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  </div>
                 </div>
               )}
             </>
@@ -358,7 +485,8 @@ export default function Blog() {
             </div>
           )}
 
-          {!loading && viewMode === 'latest' && totalPages > 0 && (
+          {/* Latest View Pagination - Always Visible */}
+          {!loading && viewMode === 'latest' && (
             <div className="mt-12">
               <Pagination>
                 <PaginationContent>
@@ -372,11 +500,12 @@ export default function Blog() {
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                       }}
-                      className={`${currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-white hover:text-white hover:bg-white/10`}
+                      className={`${currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"} text-white hover:text-white hover:bg-white/10`}
                     />
                   </PaginationItem>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  {/* Show at least page 1 */}
+                  {Array.from({ length: Math.max(1, totalPages) }, (_, i) => i + 1).map((page) => (
                     <PaginationItem key={page}>
                       <PaginationLink
                         href="#"
@@ -403,7 +532,7 @@ export default function Blog() {
                           window.scrollTo({ top: 0, behavior: 'smooth' });
                         }
                       }}
-                      className={`${currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"} text-white hover:text-white hover:bg-white/10`}
+                      className={`${currentPage >= Math.max(1, totalPages) ? "pointer-events-none opacity-50" : "cursor-pointer"} text-white hover:text-white hover:bg-white/10`}
                     />
                   </PaginationItem>
                 </PaginationContent>

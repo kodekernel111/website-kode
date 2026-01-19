@@ -40,7 +40,49 @@ export default function Navigation() {
     { href: "/about", label: "About" },
   ];
 
+  const [visibleLinks, setVisibleLinks] = useState(navLinks);
+
   useEffect(() => {
+    // Cal.com Embed Initialization
+    (function (C, A, L) {
+      let p = function (a, ar) { a.q.push(ar); };
+      let d = C.document;
+      C.cal = C.cal || function () {
+        let cal = C.cal;
+        let ar = arguments;
+        if (!cal.loaded) {
+          cal.ns = {};
+          cal.q = cal.q || [];
+          d.head.appendChild(d.createElement("script")).src = A;
+          cal.loaded = true;
+        }
+        if (ar[0] === L) {
+          const api = function () { p(api, arguments); };
+          const namespace = ar[1];
+          api.q = api.q || [];
+          if (typeof namespace === "string") {
+            cal.ns[namespace] = api;
+            p(cal.ns[namespace], ar);
+            p(cal, ["initNamespace", namespace]);
+          } else p(cal, ar);
+          return;
+        }
+        p(cal, ar);
+      };
+    })(window, "https://app.cal.com/embed/embed.js", "init");
+
+    // Initialize Global Cal instance
+    window.cal("init", { origin: "https://cal.com" });
+
+    // Configure default UI look
+    window.cal("ui", {
+      theme: "dark",
+      styles: { branding: { brandColor: "#000000" } },
+      hideEventTypeDetails: false,
+      layout: "month_view"
+    });
+
+    // Existing Config Fetch
     fetch(`${API_BASE_URL}/api/config`)
       .then(res => res.ok ? res.json() : [])
       .then(data => {
@@ -49,6 +91,14 @@ export default function Navigation() {
 
         const logoVal = data.find(c => c.configKey === "site_logo")?.configValue;
         if (logoVal) setSiteLogo(logoVal);
+
+        const hiddenItemsVal = data.find(c => c.configKey === "nav_hidden_items")?.configValue;
+        if (hiddenItemsVal) {
+          const hiddenList = hiddenItemsVal.toLowerCase().split(",").map(s => s.trim());
+          setVisibleLinks(navLinks.filter(link => !hiddenList.includes(link.label.toLowerCase())));
+        } else {
+          setVisibleLinks(navLinks);
+        }
       })
       .catch(e => console.error(e));
   }, [location]);
@@ -68,7 +118,7 @@ export default function Navigation() {
           </Link>
 
           <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <Button
                   variant="ghost"
@@ -93,6 +143,7 @@ export default function Navigation() {
                 </Button>
               </Link>
             )}
+
             <Link href="/contact">
               <Button
                 data-testid="button-get-started"
@@ -152,7 +203,7 @@ export default function Navigation() {
 
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 space-y-2" data-testid="menu-mobile">
-            {navLinks.map((link) => (
+            {visibleLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <Button
                   variant="ghost"
@@ -176,6 +227,7 @@ export default function Navigation() {
                   </Button>
                 </Link>
               )}
+
               <Link href="/contact">
                 <Button
                   className="w-full mt-2 relative px-6 py-2 font-semibold text-white bg-gradient-to-r from-primary to-accent shadow-lg rounded-full overflow-hidden transition-all duration-300 hover:from-accent hover:to-primary hover:scale-105 focus:ring-2 focus:ring-accent/60 focus:outline-none before:absolute before:inset-0 before:bg-white/10 before:rounded-full before:blur before:opacity-0 hover:before:opacity-100"

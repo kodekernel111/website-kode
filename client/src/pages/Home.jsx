@@ -1,10 +1,10 @@
 import Navigation from "@/components/Navigation";
 import HeroSection from "@/components/HeroSection";
-import ServicesGrid from "@/components/ServicesGrid";
-import PortfolioShowcase from "@/components/PortfolioShowcase";
+import ProcessSection from "@/components/ProcessSection";
+
 import FAQSection from "@/components/FAQSection";
-import TestimonialsSection from "@/components/TestimonialsSection";
-import CTASection from "@/components/CTASection";
+import PricingSection from "@/components/PricingSection";
+
 import Footer from "@/components/Footer";
 import Chatbot from "@/components/Chatbot";
 import AnimatedSection from "@/components/AnimatedSection";
@@ -15,17 +15,13 @@ export default function Home() {
       <Navigation />
       <HeroSection />
       <AnimatedSection>
-        <ServicesGrid />
+        <ProcessSection />
       </AnimatedSection>
+
       <AnimatedSection>
-        <PortfolioShowcase />
+        <PricingSection />
       </AnimatedSection>
-      <AnimatedSection>
-        <TestimonialsSection />
-      </AnimatedSection>
-      <AnimatedSection>
-        <CTASection />
-      </AnimatedSection>
+
       <AnimatedSection>
         <FAQSection />
       </AnimatedSection>

@@ -77,7 +77,9 @@ export default function WriteBlog() {
         coverImage: "",
         tags: "",
         published: false,
+        published: false,
         seriesId: "",
+        domain: "Engineering", // Default domain
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -165,7 +167,9 @@ export default function WriteBlog() {
                 coverImage: data.coverImage || "",
                 tags: data.tags ? data.tags.join(", ") : "",
                 published: data.published || false,
+                published: data.published || false,
                 seriesId: data.seriesId || "",
+                domain: data.tags && data.tags.includes("Business") ? "Business" : "Engineering", // Infer domain from tags
             });
 
             toast({
@@ -333,7 +337,11 @@ export default function WriteBlog() {
                 },
                 body: JSON.stringify({
                     ...formData,
-                    tags: formData.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+                    ...formData,
+                    tags: [...new Set([ // Ensure unique tags
+                        ...formData.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
+                        formData.domain // Auto-add domain tag
+                    ])],
                     editorMode, // Track which editor was used
                 }),
             });
@@ -673,6 +681,28 @@ Write your content here...
                         <CardContent className="p-6">
                             {!preview ? (
                                 <form onSubmit={handleSubmit} className="space-y-6">
+                                    {/* Domain Selection */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="domain" className="text-white font-semibold">
+                                            Domain Category <span className="text-red-400">*</span>
+                                        </Label>
+                                        <Select
+                                            value={formData.domain}
+                                            onValueChange={(val) => setFormData(p => ({ ...p, domain: val }))}
+                                        >
+                                            <SelectTrigger className="bg-background/60 border-border/50 text-white w-full">
+                                                <SelectValue placeholder="Select Domain" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Engineering">Engineering</SelectItem>
+                                                <SelectItem value="Business">Business</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-xs text-muted-foreground">
+                                            This will automatically tag your post and categorize it under the selected domain.
+                                        </p>
+                                    </div>
+
                                     {/* Title */}
                                     <div className="space-y-2">
                                         <Label htmlFor="title" className="text-white font-semibold">
